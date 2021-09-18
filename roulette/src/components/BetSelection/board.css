@@ -1,0 +1,415 @@
+.container {
+  user-select: none;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+  grid-template-rows: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+  gap: 0px 0px;
+  grid-auto-flow: row;
+  text-align: center;
+  width: 100%;
+  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+  'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+  'Noto Color Emoji';
+}
+
+.Zero {
+  text-align: center;
+  background-color: darkseagreen;
+  grid-area: 1 / 4 / 2 / 5;
+  border-width: 1px;
+  border-color: antiquewhite;
+  visibility: visible;
+}
+
+.DoubleZero {
+  text-align: center;
+  background-color: darkseagreen;
+  grid-area: 1 / 5 / 2 / 6;
+  border-width: 1px;
+  border-color: antiquewhite;
+  visibility: visible;
+}
+
+.Low {
+  text-align: center;
+  background-color: #444444;
+  writing-mode: tb-rl;
+  grid-area: 2 / 1 / 4 / 2;
+  border-width: 1px;
+  border-color: antiquewhite;
+  visibility: visible;
+}
+
+.Even {
+  background-color: #333333;
+  writing-mode: tb-rl;
+  grid-area: 4 / 1 / 6 / 2;;
+  border-width: 1px;
+  border-color: antiquewhite;
+  visibility: visible;
+}
+
+.Red {
+  background-color: sienna;
+  writing-mode: tb-rl;
+  grid-area: 6 / 1 / 8 / 2;
+  border-width: 1px;
+  border-color: antiquewhite;
+  visibility: visible;
+}
+
+.Black {
+  grid-area: 8 / 1 / 10 / 2;
+  writing-mode: tb-rl;
+  border-width: 1px;
+  border-color: antiquewhite;
+  visibility: visible;
+}
+
+.Odd {
+  background-color: #333333;
+  writing-mode: tb-rl;
+  grid-area: 10 / 1 / 12 / 2;
+  border-width: 1px;
+  border-color: antiquewhite;
+  visibility: visible;
+}
+
+.High {
+  background-color: #444444;
+  writing-mode: tb-rl;
+  grid-area: 12 / 1 / 14 / 2;
+  border-width: 1px;
+  border-color: antiquewhite;
+  visibility: visible;
+}
+
+.Dozen1 {
+  background-color: #555555;
+  grid-area: 2 / 2 / 6 / 3;
+  writing-mode: tb-rl;
+  border-width: 1px;
+  border-color: antiquewhite;
+  visibility: visible;
+}
+
+.Dozen2 {
+  background-color: #555555;
+  writing-mode: tb-rl;
+  grid-area: 6 / 2 / 10 / 3;
+  border-width: 1px;
+  border-color: antiquewhite;
+  visibility: visible;
+}
+
+.Dozen3 {
+  background-color: #555555;
+  writing-mode: tb-rl;
+  grid-area: 10 / 2 / 14 / 3;
+  border-width: 1px;
+  border-color: antiquewhite;
+  visibility: visible;
+}
+
+.Col1 {
+  background-color: #888888;
+  grid-area: 14 / 3 / 15 / 4;
+  border-width: 1px;
+  border-color: antiquewhite;
+  visibility: visible;
+}
+
+.Col2 {
+  background-color: #888888;
+  grid-area: 14 / 4 / 15 / 5;
+  border-width: 1px;
+  border-color: antiquewhite;
+  visibility: visible;
+}
+
+.Col3 {
+  background-color: #888888;
+  grid-area: 14 / 5 / 15 / 6;
+  border-width: 1px;
+  border-color: antiquewhite;
+  visibility: visible;
+}
+
+.R1 {
+  background-color: sienna;
+  grid-area: 2 / 3 / 3 / 4;
+  border-width: 1px;
+  border-color: antiquewhite;
+  visibility: visible;
+}
+
+.B2 {
+  grid-area: 2 / 4 / 3 / 5;
+  border-width: 1px;
+  border-color: antiquewhite;
+  visibility: visible;
+}
+
+.R3 {
+  background-color: sienna;
+  grid-area: 2 / 5 / 3 / 6;
+  border-width: 1px;
+  border-color: antiquewhite;
+  visibility: visible;
+}
+
+.B4 {
+  grid-area: 3 / 3 / 4 / 4;
+  border-width: 1px;
+  border-color: antiquewhite;
+  visibility: visible;
+}
+
+.R5 {
+  background-color: sienna;
+  grid-area: 3 / 4 / 4 / 5;
+  border-width: 1px;
+  border-color: antiquewhite;
+  visibility: visible;
+}
+
+.B7 {
+  grid-area: 3 / 5 / 4 / 6;
+  border-width: 1px;
+  border-color: antiquewhite;
+  visibility: visible;
+}
+
+.B6 {
+  grid-area: 3 / 5 / 4 / 6;
+  border-width: 1px;
+  border-color: antiquewhite;
+  visibility: visible;
+}
+
+.R7 {
+  background-color: sienna;
+  grid-area: 4 / 3 / 5 / 4;
+  border-width: 1px;
+  border-color: antiquewhite;
+  visibility: visible;
+}
+
+.B8 {
+  grid-area: 4 / 4 / 5 / 5;
+  border-width: 1px;
+  border-color: antiquewhite;
+  visibility: visible;
+}
+
+
+.R9 {
+  background-color: sienna;
+  grid-area: 4 / 5 / 5 / 6;
+  border-width: 1px;
+  border-color: antiquewhite;
+  visibility: visible;
+}
+
+.B10 {
+  grid-area: 5 / 3 / 6 / 4;
+  border-width: 1px;
+  border-color: antiquewhite;
+  visibility: visible;
+}
+
+.B11 {
+  grid-area: 5 / 4 / 6 / 5;
+  border-width: 1px;
+  border-color: antiquewhite;
+  visibility: visible;
+}
+
+.B13 {
+  grid-area: 6 / 3 / 7 / 4;
+  border-width: 1px;
+  border-color: antiquewhite;
+  visibility: visible;
+}
+
+.R12 {
+  background-color: sienna;
+  grid-area: 5 / 5 / 6 / 6;
+  border-width: 1px;
+  border-color: antiquewhite;
+  visibility: visible;
+}
+
+.R14 {
+  background-color: sienna;
+  grid-area: 6 / 4 / 7 / 5;
+  border-width: 1px;
+  border-color: antiquewhite;
+  visibility: visible;
+}
+
+.B15 {
+  grid-area: 6 / 5 / 7 / 6;
+  border-width: 1px;
+  border-color: antiquewhite;
+  visibility: visible;
+}
+
+.R16 {
+  background-color: sienna;
+  grid-area: 7 / 3 / 8 / 4;
+  border-width: 1px;
+  border-color: antiquewhite;
+  visibility: visible;
+}
+
+.B17 {
+  grid-area: 7 / 4 / 8 / 5;
+  border-width: 1px;
+  border-color: antiquewhite;
+  visibility: visible;
+}
+
+.R18 {
+  background-color: sienna;
+  grid-area: 7 / 5 / 8 / 6;
+  border-width: 1px;
+  border-color: antiquewhite;
+  visibility: visible;
+}
+
+.R19 {
+  background-color: sienna;
+  grid-area: 8 / 3 / 9 / 4;
+  border-width: 1px;
+  border-color: antiquewhite;
+  visibility: visible;
+}
+
+.B20 {
+  grid-area: 8 / 4 / 9 / 5;
+  border-width: 1px;
+  border-color: antiquewhite;
+  visibility: visible;
+}
+
+.R21 {
+  background-color: sienna;
+  grid-area: 8 / 5 / 9 / 6;
+  border-width: 1px;
+  border-color: antiquewhite;
+  visibility: visible;
+}
+
+.B22 {
+  grid-area: 9 / 3 / 10 / 4;
+  border-width: 1px;
+  border-color: antiquewhite;
+  visibility: visible;
+}
+
+.R23 {
+  background-color: sienna;
+  grid-area: 9 / 4 / 10 / 5;
+  border-width: 1px;
+  border-color: antiquewhite;
+  visibility: visible;
+}
+
+.B24 {
+  grid-area: 9 / 5 / 10 / 6;
+  border-width: 1px;
+  border-color: antiquewhite;
+  visibility: visible;
+}
+
+.R25 {
+  background-color: sienna;
+  grid-area: 10 / 3 / 11 / 4;
+  border-width: 1px;
+  border-color: antiquewhite;
+  visibility: visible;
+}
+
+.B26 {
+  grid-area: 10 / 4 / 11 / 5;
+  border-width: 1px;
+  border-color: antiquewhite;
+  visibility: visible;
+}
+
+.R27 {
+  background-color: sienna;
+  grid-area: 10 / 5 / 11 / 6;
+  border-width: 1px;
+  border-color: antiquewhite;
+  visibility: visible;
+}
+
+.B28 {
+  grid-area: 11 / 3 / 12 / 4;
+  border-width: 1px;
+  border-color: antiquewhite;
+  visibility: visible;
+}
+
+.B29 {
+  grid-area: 11 / 4 / 12 / 5;
+  border-width: 1px;
+  border-color: antiquewhite;
+  visibility: visible;
+}
+
+.R30 {
+  background-color: sienna;
+  grid-area: 11 / 5 / 12 / 6;
+  border-width: 1px;
+  border-color: antiquewhite;
+  visibility: visible;
+}
+
+.B31 {
+  grid-area: 12 / 3 / 13 / 4;
+  border-width: 1px;
+  border-color: antiquewhite;
+  visibility: visible;
+}
+
+.R32 {
+  background-color: sienna;
+  grid-area: 12 / 4 / 13 / 5;
+  border-width: 1px;
+  border-color: antiquewhite;
+  visibility: visible;
+}
+
+.B33 {
+  grid-area: 12 / 5 / 13 / 6;
+  border-width: 1px;
+  border-color: antiquewhite;
+  visibility: visible;
+}
+
+.R34 {
+  background-color: sienna;
+  grid-area: 13 / 3 / 14 / 4;
+  border-width: 1px;
+  border-color: antiquewhite;
+  visibility: visible;
+}
+
+.B35 {
+  grid-area: 13 / 4 / 14 / 5;
+  border-width: 1px;
+  border-color: antiquewhite;
+  visibility: visible;
+}
+
+.R36 {
+  background-color: sienna;
+  grid-area: 13 / 5 / 14 / 6;
+  border-width: 1px;
+  border-color: antiquewhite;
+  visibility: visible;
+}
