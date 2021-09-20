@@ -16,7 +16,7 @@ export const Balance: React.FC<BalanceProps> = ({
     <Box
       display="flex"
       height={"50px"}
-      width="220px"
+      width="270px"
       backgroundColor="grey"
       borderLeftRadius={"32px"}
       alignItems="center"

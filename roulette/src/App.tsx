@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import "./App.css";
 import Header from "./components/Header/Header";
 import { RouletteWheel } from "./components/RouletteWheel";
@@ -11,8 +11,12 @@ import { Button, Radio } from "antd";
 function App() {
   const betTrackerCtx: any = useBetTracker();
   const [value, setValue] = useState(1);
+  useEffect(
+    () => {},
+    [betTrackerCtx.grayscale],
+  )
   return (
-    <div className="App" style={{ backgroundColor: "transparent" }}>
+    <div className="App" style={{ backgroundColor: "transparent", filter: betTrackerCtx.grayscale}}>
       <Header />
       <header
         className="App-header"

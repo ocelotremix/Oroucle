@@ -18,6 +18,7 @@ export const BetTrackerProvider: FC<{ children: ReactNode }> = ({
   const [resolved, setResolved] = useState(false);
   const [chips, setChips] = useState(0);
   const [loaded, setLoaded] = useState(false);
+  const [grayscale, setGrayscale] = useState("");
 
   const updateInc = (i) => {
     setInc(i);
@@ -119,6 +120,8 @@ export const BetTrackerProvider: FC<{ children: ReactNode }> = ({
         winningBets,
         chips,
         loaded,
+        grayscale,
+        setGrayscale,
         setChips,
         setLoaded,
         lock,

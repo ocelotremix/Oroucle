@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import SpinButton from "../SpinButton";
 import { useRNG } from "../../actions";
 import { useWallet } from "@solana/wallet-adapter-react";
@@ -223,8 +223,14 @@ export const RouletteWheel: React.FC = ({ ...children }) => {
               (a, b) => (a as number) + (b as number),
               0
             ));
-            confettiCtx.dropConfetti((winnings as number) >= (bet as number));
+            const wonBet = (winnings as number) >= (bet as number);
+            if (!wonBet) {
+              console.log("Setting grayscale")
+              betTrackerCtx.setGrayscale("grayscale(1)")
+            } 
+            confettiCtx.dropConfetti(wonBet);
             setSurprise(false);
+            
           }
         }
         await new Promise((r) => setTimeout(r, 30)).then(() => {
@@ -275,6 +281,7 @@ export const RouletteWheel: React.FC = ({ ...children }) => {
       ...state,
       spinning: false,
     });
+    betTrackerCtx.setGrayscale("")
     betTrackerCtx.unlock();
     betTrackerCtx.clear();
     setResponseState({ received: true, selected: 0 });
