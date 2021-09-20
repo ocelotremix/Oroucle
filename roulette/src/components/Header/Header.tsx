@@ -101,7 +101,7 @@ export const Header: React.FC = () => {
       <Flex justifyContent="flex-begin">
         <BalancePanel />
         <Flex
-          marginLeft="120px"
+          marginLeft="150px"
           height="62px"
           justifyContent="flex-begin"
           alignItems="center"

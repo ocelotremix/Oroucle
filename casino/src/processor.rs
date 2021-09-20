@@ -160,7 +160,6 @@ fn initialize_honeypot(
     max_bet_size: u64,
     minimum_bank_size: u64,
 ) -> ProgramResult {
-    msg!("Account Len {}", accounts.len());
     let account_info_iter = &mut accounts.iter();
     let honeypot_info = next_account_info(account_info_iter)?;
     let mint_info = next_account_info(account_info_iter)?;

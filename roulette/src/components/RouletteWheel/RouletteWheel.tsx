@@ -223,10 +223,8 @@ export const RouletteWheel: React.FC = ({ ...children }) => {
               (a, b) => (a as number) + (b as number),
               0
             ));
-            if ((winnings as number) >= (bet as number)) {
-              confettiCtx.dropConfetti();
-              setSurprise(false);
-            }
+            confettiCtx.dropConfetti((winnings as number) >= (bet as number));
+            setSurprise(false);
           }
         }
         await new Promise((r) => setTimeout(r, 30)).then(() => {

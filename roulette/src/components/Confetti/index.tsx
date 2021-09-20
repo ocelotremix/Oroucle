@@ -1,8 +1,9 @@
 import React, { useContext, useEffect, useMemo, useRef } from 'react';
 import confetti from 'canvas-confetti';
+import { useBetTracker } from '../../contexts';
 
 export interface ConfettiContextState {
-  dropConfetti: () => void;
+  dropConfetti: (bool) => void;
 }
 
 const ConfettiContext = React.createContext<ConfettiContextState | null>(null);
@@ -10,10 +11,16 @@ const ConfettiContext = React.createContext<ConfettiContextState | null>(null);
 export const ConfettiProvider = ({ children = null as any }) => {
   const canvasRef = useRef<HTMLCanvasElement>();
   const confettiRef = useRef<confetti.CreateTypes>();
+  const betTrackerCtx: any = useBetTracker()
 
   const dropConfetti = useMemo(
-    () => () => {
+    () => (won) => {
       if (confettiRef.current && canvasRef.current) {
+        if (!won) {
+          canvasRef.current.style.filter = "grayscale(1)";
+        } else {
+          canvasRef.current.style.filter = "";
+        }
         canvasRef.current.style.visibility = 'visible';
         confettiRef
           .current({
@@ -62,7 +69,7 @@ export const Confetti = () => {
   const { dropConfetti } = useConfetti();
 
   useEffect(() => {
-    dropConfetti();
+    dropConfetti(true);
   }, [dropConfetti]);
 
   return <></>;

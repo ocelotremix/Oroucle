@@ -41,8 +41,8 @@ export const ENDPOINTS = [
     ChainId: ChainId.Devnet,
   },
   {
-    name: 'mainnet-beta (Serum)' as ENV,
-    endpoint: 'https://solana-api.projectserum.com/',
+    name: 'mainnet-beta' as ENV,
+    endpoint: clusterApiUrl('mainnet-beta'),
     ChainId: ChainId.MainnetBeta,
   },
 ];
