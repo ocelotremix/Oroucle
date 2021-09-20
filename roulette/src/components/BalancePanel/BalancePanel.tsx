@@ -2,40 +2,61 @@ import React, { useEffect, useState } from "react";
 import { Flex } from "@chakra-ui/react";
 import { Balance } from "../Balance/Balance";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { useConnection } from "../../contexts";
+import { deserializeAccount, useBetTracker, useConnection, useConnectionConfig } from "../../contexts";
+import { PublicKey } from "@solana/web3.js";
+import { TOKEN_PROGRAM_ID, AccountLayout } from "@solana/spl-token";
+import { DEVNET_MINT, MAINNET_MINT } from "../../actions";
+import { SPL_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID } from "../../utils/ids";
+
 
 export const BalancePanel: React.FC = () => {
   const connection = useConnection();
+  const { env } = useConnectionConfig();
   const wallet = useWallet();
-  const [lamports, setLamports] = useState(0);
+  const betTrackerCtx: any = useBetTracker();
   useEffect(() => {
     let subId;
-    const getLamports = async () => {
+    const getChips = async () => {
       if (!wallet) {
         return 0;
       }
       if (!wallet.publicKey) {
         return 0;
       }
-      console.log("Fetching lamports");
-      const data = await connection.getAccountInfo(wallet.publicKey);
-      if (data) {
-        console.log("Received lamports");
-        setLamports(data.lamports);
+      const mint = (env === "devnet") ? DEVNET_MINT : MAINNET_MINT;
+      const chipTokenAccount = (
+        await PublicKey.findProgramAddress(
+          [wallet.publicKey.toBuffer(), TOKEN_PROGRAM_ID.toBuffer(), mint.toBuffer()],
+          SPL_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID 
+        )
+      )[0]
+      const result = await connection.getAccountInfo(chipTokenAccount);
+      if (result) {
+        console.log("Received account data");
+        const tokenAccount = deserializeAccount(result.data);
+        console.log(tokenAccount)
+        betTrackerCtx.setLoaded(true);
+        betTrackerCtx.setChips(tokenAccount.amount.toNumber());
       }
-      subId = connection.onAccountChange(wallet.publicKey, (data) => {
-        if (data) {
-          console.log("Received lamports");
-          setLamports(data.lamports);
+      subId = connection.onAccountChange(chipTokenAccount, (result) => {
+        if (result) {
+          console.log("Received account data");
+          try {
+            const tokenAccount = deserializeAccount(result.data);
+            betTrackerCtx.setChips(tokenAccount.amount.toNumber());
+            betTrackerCtx.setLoaded(true);
+          } catch(e) {
+            console.log("Failed to deserialize account", e)
+          }
         }
       });
     };
-    getLamports();
+    getChips();
 
     return () => {
       if (subId) connection.removeAccountChangeListener(subId);
     };
-  }, [wallet.connected, wallet, connection, setLamports]);
+  }, [wallet.connected, wallet, connection, betTrackerCtx.setChips]);
   return (
     <Flex
       flexDirection="column"
@@ -43,7 +64,7 @@ export const BalancePanel: React.FC = () => {
       marginTop="5px"
       width="100px"
     >
-      <Balance cryptoAmount={(lamports as number) / 1e9} />
+      <Balance cryptoAmount={betTrackerCtx.chips as number} />
     </Flex>
   );
 };

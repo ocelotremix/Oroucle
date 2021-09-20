@@ -1,5 +1,7 @@
-use crate::system_utils::{create_new_account, create_or_allocate_account_raw};
-use crate::validation_utils::{assert_keys_equal, assert_owned_by, assert_signer};
+use crate::system_utils::create_or_allocate_account_raw;
+use crate::validation_utils::{
+    assert_initialized, assert_is_ata, assert_keys_equal, assert_owned_by, assert_signer,
+};
 use crate::{instruction::RandomInstruction, state::RouletteBet};
 use arrayref::array_refs;
 use borsh::{BorshDeserialize, BorshSerialize};
@@ -9,8 +11,13 @@ use solana_program::{
     msg,
     program::{invoke, invoke_signed},
     program_error::ProgramError,
+    program_pack::Pack,
     pubkey::Pubkey,
-    system_instruction, system_program,
+    system_program,
+};
+use spl_token::{
+    instruction::{initialize_account, transfer},
+    state::Account,
 };
 
 #[repr(C)]
@@ -34,15 +41,17 @@ impl RNG {
 #[derive(BorshSerialize, BorshDeserialize, Debug, Clone)]
 pub struct Honeypot {
     pub initialized: bool,
+    pub honeypot_bump_seed: u8,
+    pub vault_bump_seed: u8,
     pub owner: Pubkey,
-    pub bump_seed: u8,
+    pub mint: Pubkey,
     pub tick_size: u64,
     pub max_bet_size: u64,
     pub minimum_bank_size: u64,
 }
 
 impl Honeypot {
-    pub const LEN: i64 = 1 + 32 + 1 + 8 + 8 + 8;
+    pub const LEN: i64 = 1 + 1 + 1 + 32 + 32 + 8 + 8 + 8;
 
     pub fn from_account_info(a: &AccountInfo) -> Result<Honeypot, ProgramError> {
         let hp = Honeypot::try_from_slice(&a.data.borrow())?;
@@ -69,6 +78,9 @@ impl Processor {
             }
             RandomInstruction::InitializeHoneypot(args) => {
                 msg!("Instruction 2: InitializeHoneypot");
+                msg!("Tick size {}", args.tick_size);
+                msg!("Max bet size {}", args.max_bet_size);
+                msg!("Minimum bet size {}", args.minimum_bank_size);
                 initialize_honeypot(
                     program_id,
                     accounts,
@@ -148,20 +160,57 @@ fn initialize_honeypot(
     max_bet_size: u64,
     minimum_bank_size: u64,
 ) -> ProgramResult {
+    msg!("Account Len {}", accounts.len());
     let account_info_iter = &mut accounts.iter();
     let honeypot_info = next_account_info(account_info_iter)?;
+    let mint_info = next_account_info(account_info_iter)?;
     let vault_info = next_account_info(account_info_iter)?;
     let owner_info = next_account_info(account_info_iter)?;
+    let token_program_info = next_account_info(account_info_iter)?;
     let rent_sysvar_info = next_account_info(account_info_iter)?;
     let system_program_info = next_account_info(account_info_iter)?;
+    msg!("Checking CPI program ID's");
     assert_keys_equal(system_program::id(), *system_program_info.key)?;
-    let (honeypot_key, honeypot_bump_seed) =
-        Pubkey::find_program_address(&[b"honeypot", program_id.as_ref()], program_id);
-    let seeds = &[b"honeypot", program_id.as_ref(), &[honeypot_bump_seed]];
-    let (vault_key, vault_bump_seed) =
-        Pubkey::find_program_address(&[b"vault", program_id.as_ref()], program_id);
+    assert_keys_equal(spl_token::id(), *token_program_info.key)?;
+    msg!("Checking proper mint");
+    assert_owned_by(mint_info, token_program_info.key)?;
+    let (honeypot_key, honeypot_bump_seed) = Pubkey::find_program_address(
+        &[
+            b"honeypot",
+            mint_info.key.as_ref(),
+            &tick_size.to_le_bytes(),
+            &max_bet_size.to_le_bytes(),
+            &minimum_bank_size.to_le_bytes(),
+        ],
+        program_id,
+    );
+    let honeypot_seeds = &[
+        b"honeypot",
+        mint_info.key.as_ref(),
+        &tick_size.to_le_bytes(),
+        &max_bet_size.to_le_bytes(),
+        &minimum_bank_size.to_le_bytes(),
+        &[honeypot_bump_seed],
+    ];
+    let (vault_key, vault_bump_seed) = Pubkey::find_program_address(
+        &[
+            b"vault",
+            mint_info.key.as_ref(),
+            &tick_size.to_le_bytes(),
+            &max_bet_size.to_le_bytes(),
+            &minimum_bank_size.to_le_bytes(),
+        ],
+        program_id,
+    );
     msg!("Vault {}: ", vault_key);
-    let vault_seeds = &[b"vault", program_id.as_ref(), &[vault_bump_seed]];
+    let vault_seeds = &[
+        b"vault",
+        mint_info.key.as_ref(),
+        &tick_size.to_le_bytes(),
+        &max_bet_size.to_le_bytes(),
+        &minimum_bank_size.to_le_bytes(),
+        &[vault_bump_seed],
+    ];
     create_or_allocate_account_raw(
         honeypot_info,
         rent_sysvar_info,
@@ -169,22 +218,40 @@ fn initialize_honeypot(
         owner_info,
         program_id,
         Honeypot::LEN as usize,
-        seeds,
+        honeypot_seeds,
     )?;
-    create_new_account(
-        owner_info,
+    create_or_allocate_account_raw(
         vault_info,
-        0,
-        system_program_info.key,
         rent_sysvar_info,
+        system_program_info,
+        owner_info,
+        token_program_info.key,
+        Account::LEN,
         vault_seeds,
+    )?;
+    invoke(
+        &initialize_account(
+            token_program_info.key,
+            vault_info.key,
+            mint_info.key,
+            honeypot_info.key,
+        )?,
+        &[
+            vault_info.clone(),
+            mint_info.clone(),
+            honeypot_info.clone(),
+            rent_sysvar_info.clone(),
+            token_program_info.clone(),
+        ],
     )?;
     assert_keys_equal(honeypot_key, *honeypot_info.key)?;
     assert_keys_equal(vault_key, *vault_info.key)?;
     let mut honeypot = Honeypot::from_account_info(honeypot_info)?;
     honeypot.initialized = true;
-    honeypot.bump_seed = vault_bump_seed;
+    honeypot.honeypot_bump_seed = honeypot_bump_seed;
+    honeypot.vault_bump_seed = vault_bump_seed;
     honeypot.owner = *owner_info.key;
+    honeypot.mint = *mint_info.key;
     honeypot.tick_size = tick_size;
     honeypot.max_bet_size = max_bet_size;
     honeypot.minimum_bank_size = minimum_bank_size;
@@ -200,24 +267,54 @@ fn withdraw_from_honeypot(
     let account_info_iter = &mut accounts.iter();
     let honeypot_info = next_account_info(account_info_iter)?;
     let vault_info = next_account_info(account_info_iter)?;
+    let mint_info = next_account_info(account_info_iter)?;
     let owner_info = next_account_info(account_info_iter)?;
-    let system_program_info = next_account_info(account_info_iter)?;
+    let owner_token_account_info = next_account_info(account_info_iter)?;
+    let token_program_info = next_account_info(account_info_iter)?;
     let honeypot = Honeypot::from_account_info(honeypot_info)?;
+    assert_is_ata(owner_token_account_info, owner_info.key, mint_info.key)?;
     assert_signer(owner_info)?;
     assert_owned_by(honeypot_info, program_id)?;
-    assert_keys_equal(system_program::id(), *system_program_info.key)?;
+    assert_owned_by(mint_info, token_program_info.key)?;
+    assert_keys_equal(spl_token::id(), *token_program_info.key)?;
     assert_keys_equal(honeypot.owner, *owner_info.key)?;
-    let seeds = &[b"vault", program_id.as_ref(), &[honeypot.bump_seed]];
-    let vault_key = Pubkey::create_program_address(seeds, program_id).unwrap();
+    assert_keys_equal(honeypot.mint, *mint_info.key)?;
+    let honeypot_seeds = &[
+        b"honeypot",
+        mint_info.key.as_ref(),
+        &honeypot.tick_size.to_le_bytes(),
+        &honeypot.max_bet_size.to_le_bytes(),
+        &honeypot.minimum_bank_size.to_le_bytes(),
+        &[honeypot.honeypot_bump_seed],
+    ];
+    let vault_seeds = &[
+        b"vault",
+        mint_info.key.as_ref(),
+        &honeypot.tick_size.to_le_bytes(),
+        &honeypot.max_bet_size.to_le_bytes(),
+        &honeypot.minimum_bank_size.to_le_bytes(),
+        &[honeypot.vault_bump_seed],
+    ];
+    let honeypot_key = Pubkey::create_program_address(honeypot_seeds, program_id).unwrap();
+    let vault_key = Pubkey::create_program_address(vault_seeds, program_id).unwrap();
+    assert_keys_equal(honeypot_key, *honeypot_info.key)?;
     assert_keys_equal(vault_key, *vault_info.key)?;
     invoke_signed(
-        &system_instruction::transfer(vault_info.key, owner_info.key, amount_to_withdraw),
+        &transfer(
+            token_program_info.key,
+            vault_info.key,
+            owner_token_account_info.key,
+            honeypot_info.key,
+            &[],
+            amount_to_withdraw,
+        )?,
         &[
             vault_info.clone(),
-            owner_info.clone(),
-            system_program_info.clone(),
+            owner_token_account_info.clone(),
+            honeypot_info.clone(),
+            token_program_info.clone(),
         ],
-        &[seeds],
+        &[honeypot_seeds],
     )?;
     Ok(())
 }
@@ -229,22 +326,45 @@ fn roulette(
     bets: Vec<RouletteBet>,
 ) -> ProgramResult {
     msg!("Starting Roulette spin");
-    let (main_accounts, oracle_accounts) = array_refs![accounts, 5; .. ;];
+    let (main_accounts, oracle_accounts) = array_refs![accounts, 7; .. ;];
     let (random_sample, slot) = random::random::sample(oracle_accounts, tolerance)?;
     let account_info_iter = &mut main_accounts.iter();
     let rng_info = next_account_info(account_info_iter)?;
     let gambler_info = next_account_info(account_info_iter)?;
+    let gambler_token_account_info = next_account_info(account_info_iter)?;
+    let mint_info = next_account_info(account_info_iter)?;
     let honeypot_info = next_account_info(account_info_iter)?;
     let vault_info = next_account_info(account_info_iter)?;
-    let system_program_info = next_account_info(account_info_iter)?;
-    if *system_program_info.key != system_program::id() {
-        msg!("Passed in the incorrect System Program");
-        return Err(ProgramError::IncorrectProgramId.into());
-    }
+    let token_program_info = next_account_info(account_info_iter)?;
+    assert_keys_equal(spl_token::id(), *token_program_info.key)?;
+    msg!("ATA check");
+    assert_is_ata(gambler_token_account_info, gambler_info.key, mint_info.key)?;
     assert_owned_by(honeypot_info, program_id)?;
     assert_signer(gambler_info)?;
     let mut rng = RNG::from_account_info(rng_info)?;
     let honeypot = Honeypot::from_account_info(honeypot_info)?;
+    let vault: Account = assert_initialized(vault_info)?;
+    let honeypot_seeds = &[
+        b"honeypot",
+        mint_info.key.as_ref(),
+        &honeypot.tick_size.to_le_bytes(),
+        &honeypot.max_bet_size.to_le_bytes(),
+        &honeypot.minimum_bank_size.to_le_bytes(),
+        &[honeypot.honeypot_bump_seed],
+    ];
+    let vault_seeds = &[
+        b"vault",
+        mint_info.key.as_ref(),
+        &honeypot.tick_size.to_le_bytes(),
+        &honeypot.max_bet_size.to_le_bytes(),
+        &honeypot.minimum_bank_size.to_le_bytes(),
+        &[honeypot.vault_bump_seed],
+    ];
+    let honeypot_key = Pubkey::create_program_address(honeypot_seeds, program_id).unwrap();
+    let vault_key = Pubkey::create_program_address(vault_seeds, program_id).unwrap();
+    assert_keys_equal(honeypot_key, *honeypot_info.key)?;
+    assert_keys_equal(vault_key, *vault_info.key)?;
+    msg!("Validation checks passed");
     if !rng.initialized {
         rng.initialized = true;
     }
@@ -269,38 +389,51 @@ fn roulette(
         msg!("Bet is too large");
         return Err(ProgramError::InvalidInstructionData.into());
     }
-    if vault_info.lamports() <= honeypot.minimum_bank_size {
+    if vault.amount <= honeypot.minimum_bank_size {
         msg!("Honeypot funds have been drained. The house needs to reload.");
         return Err(ProgramError::InsufficientFunds.into());
     }
-    let seeds = &[b"vault", program_id.as_ref(), &[honeypot.bump_seed]];
-    let vault_key = Pubkey::create_program_address(seeds, program_id).unwrap();
-    assert_keys_equal(vault_key, *vault_info.key)?;
-    let lamports = total_amount
+    let total_bet_size = total_amount
         .checked_mul(honeypot.tick_size)
         .ok_or(ProgramError::InsufficientFunds)?;
-    msg!("User deposited {} lamports", lamports);
+    msg!("User deposited {} tokens", total_bet_size);
     invoke(
-        &system_instruction::transfer(gambler_info.key, vault_info.key, lamports),
+        &transfer(
+            token_program_info.key,
+            gambler_token_account_info.key,
+            vault_info.key,
+            gambler_info.key,
+            &[],
+            total_bet_size,
+        )?,
         &[
-            gambler_info.clone(),
+            gambler_token_account_info.clone(),
             vault_info.clone(),
-            system_program_info.clone(),
+            gambler_info.clone(),
+            token_program_info.clone(),
         ],
     )?;
-    let lamports = reward
+    let total_reward = reward
         .checked_mul(honeypot.tick_size)
         .ok_or(ProgramError::InsufficientFunds)?;
-    if lamports > 0 {
-        msg!("User won {} lamports", lamports);
+    if total_reward > 0 {
+        msg!("User won {} tokens", total_reward);
         invoke_signed(
-            &system_instruction::transfer(vault_info.key, gambler_info.key, lamports),
+            &transfer(
+                token_program_info.key,
+                vault_info.key,
+                gambler_token_account_info.key,
+                honeypot_info.key,
+                &[],
+                total_reward,
+            )?,
             &[
                 vault_info.clone(),
-                gambler_info.clone(),
-                system_program_info.clone(),
+                gambler_token_account_info.clone(),
+                honeypot_info.clone(),
+                token_program_info.clone(),
             ],
-            &[seeds],
+            &[honeypot_seeds],
         )?;
     }
     rng.serialize(&mut *rng_info.data.borrow_mut())?;

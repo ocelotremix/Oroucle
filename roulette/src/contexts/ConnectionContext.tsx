@@ -35,26 +35,15 @@ export type ENV =
   | 'lending';
 
 export const ENDPOINTS = [
-  // {
-  //   name: 'mainnet-beta (Solana)' as ENV,
-  //   endpoint: 'https://api.devnet.solana.com',
-  //   // endpoint: 'http://127.0.0.1:8899',
-  //   ChainId: ChainId.MainnetBeta,
-  // },
-  {
-    name: 'mainnet-beta (Serum)' as ENV,
-    endpoint: 'https://solana-api.projectserum.com/',
-    ChainId: ChainId.MainnetBeta,
-  },
-  {
-    name: 'testnet' as ENV,
-    endpoint: clusterApiUrl('testnet'),
-    ChainId: ChainId.Testnet,
-  },
   {
     name: 'devnet' as ENV,
     endpoint: clusterApiUrl('devnet'),
     ChainId: ChainId.Devnet,
+  },
+  {
+    name: 'mainnet-beta (Serum)' as ENV,
+    endpoint: 'https://solana-api.projectserum.com/',
+    ChainId: ChainId.MainnetBeta,
   },
 ];
 

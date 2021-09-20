@@ -13,7 +13,7 @@ export const Balance: React.FC<BalanceProps> = ({
 }) => {
     const svgSrc = copeSvg;
     const balance = "My Balance";
-    const cryptoAbbr = "COPE";
+    const cryptoAbbr = "Chips";
 
     return (
         <Box

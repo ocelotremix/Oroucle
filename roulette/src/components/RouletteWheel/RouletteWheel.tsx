@@ -4,7 +4,7 @@ import { useRNG } from "../../actions";
 import { useWallet } from "@solana/wallet-adapter-react";
 
 import "./styles.css";
-import { useBetTracker, useConnection } from "../../contexts";
+import { useBetTracker, useConnection, useConnectionConfig } from "../../contexts";
 import { notify } from "../../utils/notifications";
 import { useConfetti } from "../Confetti";
 
@@ -66,7 +66,7 @@ export const RouletteWheel: React.FC = ({ ...children }) => {
     received: true,
     selected: 0,
   });
-
+  let { env } = useConnectionConfig();
   useEffect(() => {
     const renderSector = (start, arc, color) => {
       const canvas = document.getElementById("wheel") as HTMLCanvasElement;
@@ -214,8 +214,19 @@ export const RouletteWheel: React.FC = ({ ...children }) => {
         ) {
           setState({ ...state, spinning: false });
           if (surprise) {
-            confettiCtx.dropConfetti();
-            setSurprise(false);
+            betTrackerCtx.updateBetResults(rngCtx.currentSample);
+            let bet =  (Object.values(betTrackerCtx.state).reduce(
+              (a, b) => (a as number) + (b as number),
+              0
+            ))
+            let winnings = (Object.values(betTrackerCtx.winningBets).reduce(
+              (a, b) => (a as number) + (b as number),
+              0
+            ));
+            if ((winnings as number) >= (bet as number)) {
+              confettiCtx.dropConfetti();
+              setSurprise(false);
+            }
           }
         }
         await new Promise((r) => setTimeout(r, 30)).then(() => {
@@ -252,7 +263,7 @@ export const RouletteWheel: React.FC = ({ ...children }) => {
     });
     betTrackerCtx.lock();
     setResponseState({ ...responseState, received: false });
-    if (!(await rngCtx.sample(connection, wallet, rngCtx, betTrackerCtx))) {
+    if (!(await rngCtx.sample(connection, wallet, env, rngCtx, betTrackerCtx))) {
       setState({ ...state, spinning: false });
       setStartIdx(0);
       setResponseState({ received: false, selected: 0 });

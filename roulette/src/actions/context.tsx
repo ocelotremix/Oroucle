@@ -27,7 +27,6 @@ const RNGContext = React.createContext({ ...defaultContext });
 
 export function RNGProvider({ children = null as any }) {
   const connection = useConnection();
-
   const [state, setState] = useState({ ...defaultContext });
 
   return (
@@ -48,15 +47,15 @@ export function RNGProvider({ children = null as any }) {
               newState.convertedSamples = [];
               newState.rawSamples = [];
           }
+          newState.currentRawSample = RNG.sample;
+          newState.currentSample = RNG.sample.modn(38);
+          newState.convertedSamples = [...newState.convertedSamples, newState.currentSample];
           if (newState.currentSlot === RNG.slot) {
               newState.duplicated = true;
           } else {
               newState.duplicated = false;
           }
           newState.currentSlot = RNG.slot;
-          newState.currentRawSample = RNG.sample;
-          newState.currentSample = RNG.sample.modn(38);
-          newState.convertedSamples = [...newState.convertedSamples, newState.currentSample];
           console.log("Newest Sample:", newState.currentSample);
           console.log("RNG", RNG);
           console.log("Previous state", state);

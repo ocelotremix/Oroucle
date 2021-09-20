@@ -1,69 +1,258 @@
 import {
   Connection,
   Keypair,
+  Account,
   PublicKey,
   TransactionInstruction,
+  sendAndConfirmTransaction,
+  Transaction,
 } from "@solana/web3.js";
-import { Connection as Conn } from "../contexts";
-
+import {
+  Connection as Conn,
+  useConnection,
+  useConnectionConfig,
+} from "../contexts";
+import {
+  createAssociatedTokenAccountInstruction,
+  createMint,
+  createMintFromAccount,
+  createUninitializedMint,
+} from "./account";
 import {
   initializeInstruction,
   rouletteInstruction,
   initializeHoneypotInstruction,
 } from "./instructions";
-
-import { notify, toPublicKey } from "../utils";
+import {
+  notify,
+  SPL_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID,
+  toPublicKey,
+} from "../utils";
 import {
   RNG_PROGRAM_ID,
-  SOL_PRICE_ORACLE,
-  SOL_PRODUCT_ORACLE,
-  BTC_PRODUCT_ORACLE,
-  BTC_PRICE_ORACLE,
-  ETH_PRODUCT_ORACLE,
-  ETH_PRICE_ORACLE,
+  DEVNET_SOL_PRICE_ORACLE,
+  DEVNET_SOL_PRODUCT_ORACLE,
+  DEVNET_BTC_PRODUCT_ORACLE,
+  DEVNET_BTC_PRICE_ORACLE,
+  DEVNET_ETH_PRODUCT_ORACLE,
+  DEVNET_ETH_PRICE_ORACLE,
+  DEVNET_MINT,
+  MAINNET_SOL_PRICE_ORACLE,
+  MAINNET_SOL_PRODUCT_ORACLE,
+  MAINNET_BTC_PRODUCT_ORACLE,
+  MAINNET_BTC_PRICE_ORACLE,
+  MAINNET_ETH_PRODUCT_ORACLE,
+  MAINNET_ETH_PRICE_ORACLE,
+  MAINNET_MINT,
+  DEVNET_MINT_KEYPAIR,
+  DEVNET_MINT_AUTHORITY,
+  TICK_SIZE,
+  MAX_BET_SIZE,
+  MINIMUM_BANK_SIZE,
 } from "./constants";
 import { RouletteBet } from "./state";
 import { BET_TO_IDX } from "./betEnum";
 import BN from "bn.js";
+import { MintLayout, Token, TOKEN_PROGRAM_ID } from "@solana/spl-token";
+
+const getMintAccount = async (
+  connection: Connection,
+  wallet: any,
+  env: string,
+  createMintIx: TransactionInstruction[],
+  signers: Keypair[]
+) => {
+  let mintAccount;
+  if (env === "devnet") {
+    mintAccount = DEVNET_MINT;
+    if (!(await connection.getAccountInfo(mintAccount))) {
+      const mintRent = await connection.getMinimumBalanceForRentExemption(
+        MintLayout.span
+      );
+      const mintAccountKeypair = Keypair.fromSecretKey(
+        new Uint8Array(DEVNET_MINT_KEYPAIR)
+      );
+      const mintAuthority = Keypair.fromSecretKey(
+        new Uint8Array(DEVNET_MINT_AUTHORITY)
+      );
+      createMintFromAccount(
+        createMintIx,
+        wallet.publicKey,
+        mintRent,
+        0,
+        mintAuthority.publicKey,
+        mintAuthority.publicKey,
+        mintAccountKeypair
+      );
+      signers.push(mintAccountKeypair);
+      const response = await Conn.sendTransactionWithRetry(
+        connection,
+        wallet,
+        [...createMintIx],
+        signers,
+        "max"
+      );
+      if (!response) {
+        return null;
+      }
+    }
+  } else {
+    mintAccount = MAINNET_MINT;
+  }
+  return mintAccount;
+};
+
+export const mintChips = async (
+  connection: Connection,
+  wallet: any,
+  env: string,
+  size: number,
+) => {
+  if (env === "devnet") {
+    let signers: Keypair[] = [];
+    let ix: TransactionInstruction[] = [];
+    const mintAccount = await getMintAccount(
+      connection,
+      wallet,
+      env,
+      ix,
+      signers
+    );
+    const mintAuthority = Keypair.fromSecretKey(
+      new Uint8Array(DEVNET_MINT_AUTHORITY)
+    );
+    const token = new Token(
+      connection,
+      mintAccount,
+      TOKEN_PROGRAM_ID,
+      mintAuthority
+    );
+    const tokenAccount = (
+      await PublicKey.findProgramAddress(
+        [
+          wallet.publicKey.toBuffer(),
+          TOKEN_PROGRAM_ID.toBuffer(),
+          mintAccount.toBuffer(),
+        ],
+        SPL_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID
+      )
+    )[0];
+
+    const traderHasChipAccount = await connection.getAccountInfo(
+      new PublicKey(tokenAccount)
+    );
+
+    let createATAIx: TransactionInstruction[] = [];
+    if (!traderHasChipAccount) {
+      console.log("Creating payer AssociatedTokenAccount...");
+      createAssociatedTokenAccountInstruction(
+        createATAIx,
+        tokenAccount,
+        wallet.publicKey,
+        wallet.publicKey,
+        mintAccount
+      );
+    }
+    let mintIx = Token.createMintToInstruction(
+      TOKEN_PROGRAM_ID,
+      mintAccount,
+      tokenAccount,
+      mintAuthority.publicKey,
+      [mintAuthority],
+      size
+    );
+    signers.push(mintAuthority);
+    await Conn.sendTransactionWithRetry(
+      connection,
+      wallet,
+      [...createATAIx, mintIx],
+      signers,
+      "max"
+    );
+  }
+};
 
 export const initializeHoneypot = async (
-  connection: Connection,
-  wallet: any
+  connection,
+  wallet: any,
+  env: string
 ) => {
+  console.log(connection.entrypoint);
   if (!wallet.publicKey) {
     notify({ message: "Wallet not connected!" });
     return false;
   }
   console.log(wallet.publicKey);
   let signers: Keypair[] = [];
-  let [honeypotKey, _] = await PublicKey.findProgramAddress(
-    [Buffer.from("honeypot"), RNG_PROGRAM_ID.toBuffer()],
+  let honeypotIx: TransactionInstruction[] = [];
+  let createMintIx: TransactionInstruction[] = [];
+  let mintIx: TransactionInstruction[] = [];
+  let mintAccount = await getMintAccount(
+    connection,
+    wallet,
+    env,
+    createMintIx,
+    signers
+  );
+  if (!mintAccount) {
+    return false;
+  }
+  let [honeypotKey, _honeypotBumpSeed] = await PublicKey.findProgramAddress(
+    [
+      Buffer.from("honeypot"),
+      mintAccount.toBuffer(),
+      new Uint8Array(TICK_SIZE.toArray("le", 8)),
+      new Uint8Array(MAX_BET_SIZE.toArray("le", 8)),
+      new Uint8Array(MINIMUM_BANK_SIZE.toArray("le", 8)),
+    ],
     RNG_PROGRAM_ID
   );
   let [vaultKey, _vaultBumpSeed] = await PublicKey.findProgramAddress(
-    [Buffer.from("vault"), RNG_PROGRAM_ID.toBuffer()],
+    [
+      Buffer.from("vault"),
+      mintAccount.toBuffer(),
+      new Uint8Array(TICK_SIZE.toArray("le", 8)),
+      new Uint8Array(MAX_BET_SIZE.toArray("le", 8)),
+      new Uint8Array(MINIMUM_BANK_SIZE.toArray("le", 8)),
+    ],
     RNG_PROGRAM_ID
   );
-  let honeypotIx: TransactionInstruction[] = [];
-  if (!honeypotKey) {
-    notify({ message: "RNG acount invalid" });
-    return false;
-  }
+
   let res = await connection.getAccountInfo(honeypotKey);
   if (!res) {
     let { ix } = await initializeHoneypotInstruction(
       honeypotKey.toBase58(),
       vaultKey.toBase58(),
+      mintAccount.toBase58(),
       wallet
     );
     honeypotIx = ix;
+    if (env === "devnet") {
+      const mintAuthority = Keypair.fromSecretKey(
+        new Uint8Array(DEVNET_MINT_AUTHORITY)
+      );
+      mintIx = [
+        Token.createMintToInstruction(
+          TOKEN_PROGRAM_ID,
+          mintAccount,
+          vaultKey,
+          mintAuthority.publicKey,
+          [mintAuthority],
+          2 * MINIMUM_BANK_SIZE.toNumber()
+        ),
+      ];
+      signers.push(mintAuthority);
+    }
     const response = await Conn.sendTransactionWithRetry(
       connection,
       wallet,
-      [...honeypotIx],
+      [...honeypotIx, ...mintIx],
       signers,
       "max"
     );
+    if (!response) {
+      return false;
+    }
   }
   return true;
 };
@@ -71,6 +260,7 @@ export const initializeHoneypot = async (
 export const sample = async (
   connection: Connection,
   wallet: any,
+  env: string,
   ctx: any,
   betTrackerCtx: any
 ) => {
@@ -80,6 +270,18 @@ export const sample = async (
   }
   console.log(wallet.publicKey);
   let signers: Keypair[] = [];
+  let createMintIx: TransactionInstruction[] = [];
+  let mintAccount = await getMintAccount(
+    connection,
+    wallet,
+    env,
+    createMintIx,
+    signers
+  );
+  if (!mintAccount) {
+    notify({ message: "Failed to create mint account" });
+    return false;
+  }
   let [rngAccountKey, _] = await PublicKey.findProgramAddress(
     [
       Buffer.from("random"),
@@ -90,7 +292,7 @@ export const sample = async (
   );
   let createIx: TransactionInstruction[] = [];
   if (!rngAccountKey) {
-    notify({ message: "RNG acount invalid" });
+    notify({ message: "RNG account invalid" });
     return false;
   }
   let res = await connection.getAccountInfo(rngAccountKey);
@@ -111,29 +313,93 @@ export const sample = async (
       })
     );
   }
-  let [honeypotKey, _bumpSeed] = await PublicKey.findProgramAddress(
-    [Buffer.from("honeypot"), RNG_PROGRAM_ID.toBuffer()],
+  const tokenAccount = (
+    await PublicKey.findProgramAddress(
+      [
+        wallet.publicKey.toBuffer(),
+        TOKEN_PROGRAM_ID.toBuffer(),
+        mintAccount.toBuffer(),
+      ],
+      SPL_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID
+    )
+  )[0];
+
+  const traderHasChipAccount = await connection.getAccountInfo(
+    new PublicKey(tokenAccount)
+  );
+
+  let createATAIx: TransactionInstruction[] = [];
+  if (!traderHasChipAccount) {
+    console.log("Creating payer AssociatedTokenAccount...");
+    createAssociatedTokenAccountInstruction(
+      createATAIx,
+      tokenAccount,
+      wallet.publicKey,
+      wallet.publicKey,
+      mintAccount
+    );
+  }
+
+  let [honeypotKey, _honeypotBumpSeed] = await PublicKey.findProgramAddress(
+    [
+      Buffer.from("honeypot"),
+      mintAccount.toBuffer(),
+      new Uint8Array(TICK_SIZE.toArray("le", 8)),
+      new Uint8Array(MAX_BET_SIZE.toArray("le", 8)),
+      new Uint8Array(MINIMUM_BANK_SIZE.toArray("le", 8)),
+    ],
     RNG_PROGRAM_ID
   );
   let [vaultKey, _vaultBumpSeed] = await PublicKey.findProgramAddress(
-    [Buffer.from("vault"), RNG_PROGRAM_ID.toBuffer()],
+    [
+      Buffer.from("vault"),
+      mintAccount.toBuffer(),
+      new Uint8Array(TICK_SIZE.toArray("le", 8)),
+      new Uint8Array(MAX_BET_SIZE.toArray("le", 8)),
+      new Uint8Array(MINIMUM_BANK_SIZE.toArray("le", 8)),
+    ],
     RNG_PROGRAM_ID
   );
+
   console.log(bets);
   console.log(honeypotKey.toBase58());
-  const { ix: sampleIx } = await rouletteInstruction(
-    rngAccountKey.toBase58(),
-    honeypotKey.toBase58(),
-    vaultKey.toBase58(),
-    SOL_PRODUCT_ORACLE.toBase58(),
-    SOL_PRICE_ORACLE.toBase58(),
-    BTC_PRODUCT_ORACLE.toBase58(),
-    BTC_PRICE_ORACLE.toBase58(),
-    ETH_PRODUCT_ORACLE.toBase58(),
-    ETH_PRICE_ORACLE.toBase58(),
-    wallet,
-    bets
-  );
+
+  let sampleIx: TransactionInstruction[] = [];
+  if (env === "devnet") {
+    const { ix } = await rouletteInstruction(
+      rngAccountKey.toBase58(),
+      honeypotKey.toBase58(),
+      vaultKey.toBase58(),
+      tokenAccount.toBase58(),
+      DEVNET_MINT.toBase58(),
+      DEVNET_SOL_PRODUCT_ORACLE.toBase58(),
+      DEVNET_SOL_PRICE_ORACLE.toBase58(),
+      DEVNET_BTC_PRODUCT_ORACLE.toBase58(),
+      DEVNET_BTC_PRICE_ORACLE.toBase58(),
+      DEVNET_ETH_PRODUCT_ORACLE.toBase58(),
+      DEVNET_ETH_PRICE_ORACLE.toBase58(),
+      wallet,
+      bets
+    );
+    sampleIx = ix;
+  } else {
+    const { ix } = await rouletteInstruction(
+      rngAccountKey.toBase58(),
+      honeypotKey.toBase58(),
+      vaultKey.toBase58(),
+      tokenAccount.toBase58(),
+      MAINNET_MINT.toBase58(),
+      MAINNET_SOL_PRODUCT_ORACLE.toBase58(),
+      MAINNET_SOL_PRICE_ORACLE.toBase58(),
+      MAINNET_BTC_PRODUCT_ORACLE.toBase58(),
+      MAINNET_BTC_PRICE_ORACLE.toBase58(),
+      MAINNET_ETH_PRODUCT_ORACLE.toBase58(),
+      MAINNET_ETH_PRICE_ORACLE.toBase58(),
+      wallet,
+      bets
+    );
+    sampleIx = ix;
+  }
 
   const response = await Conn.sendTransactionWithRetry(
     connection,

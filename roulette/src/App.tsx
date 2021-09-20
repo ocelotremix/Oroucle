@@ -58,7 +58,7 @@ function App() {
             </Flex>
             <Flex
               ml="170px"
-              mt="23px"
+              mt="32px"
               width="300px"
               height="50px"
               alignItems="center"
