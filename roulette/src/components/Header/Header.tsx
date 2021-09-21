@@ -32,9 +32,6 @@ const getMintString = (connection, wallet, env, ctx) => {
   let color;
   let textColor;
   const maxChips = MAX_BET_SIZE.toNumber();
-  console.log("Max Chips:", maxChips);
-  console.log("My Chips:", ctx.chips);
-  console.log("Loaded:", ctx.loaded);
   if (ctx.loaded && ctx.chips < maxChips) {
     const remainder = maxChips - ctx.chips;
     mintString = `Mint ${remainder} chips`;
