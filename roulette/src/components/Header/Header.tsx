@@ -32,6 +32,9 @@ const getMintString = (connection, wallet, env, ctx) => {
   let color;
   let textColor;
   const maxChips = MAX_BET_SIZE.toNumber();
+  console.log("Max Chips:", maxChips);
+  console.log("My Chips:", ctx.chips);
+  console.log("Loaded:", ctx.loaded);
   if (ctx.loaded && ctx.chips < maxChips) {
     const remainder = maxChips - ctx.chips;
     mintString = `Mint ${remainder} chips`;
@@ -67,6 +70,8 @@ export const Header: React.FC = () => {
     setVisible(true);
   }, [setModal, setVisible]);
 
+  useEffect(() => {}, [betTrackerCtx.grayscale]);
+
   useEffect(() => {
     const getHoneypot = async () => {
       let mintAccount = env === "devnet" ? DEVNET_MINT : MAINNET_MINT;
@@ -97,7 +102,7 @@ export const Header: React.FC = () => {
 
   const handleChange = open;
   return (
-    <Flex backgroundColor="#444444" justifyContent="space-between" minW="100%">
+    <Flex backgroundColor="#444444" justifyContent="space-between" minW="100%" filter={betTrackerCtx.grayscale}>
       <Flex justifyContent="flex-begin">
         <BalancePanel />
         <Flex

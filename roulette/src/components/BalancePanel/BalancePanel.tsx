@@ -35,16 +35,15 @@ export const BalancePanel: React.FC = () => {
         console.log("Received account data");
         const tokenAccount = deserializeAccount(result.data);
         console.log(tokenAccount)
-        betTrackerCtx.setLoaded(true);
         betTrackerCtx.setChips(tokenAccount.amount.toNumber());
       }
+      betTrackerCtx.setLoaded(true);
       subId = connection.onAccountChange(chipTokenAccount, (result) => {
         if (result) {
           console.log("Received account data");
           try {
             const tokenAccount = deserializeAccount(result.data);
             betTrackerCtx.setChips(tokenAccount.amount.toNumber());
-            betTrackerCtx.setLoaded(true);
           } catch(e) {
             console.log("Failed to deserialize account", e)
           }

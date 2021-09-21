@@ -1,8 +1,8 @@
 {
-  "homepage": "https://rliquito.github.io/Oroucle/",
   "name": "roulette",
   "version": "0.1.0",
   "private": true,
+  "homepage": "https://rliquito.github.io/Oroucle",
   "dependencies": {
     "@chakra-ui/react": "^1.6.6",
     "@emotion/react": "^11",

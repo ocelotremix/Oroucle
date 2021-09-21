@@ -40,11 +40,6 @@ export const ENDPOINTS = [
     endpoint: clusterApiUrl('devnet'),
     ChainId: ChainId.Devnet,
   },
-  {
-    name: 'mainnet-beta' as ENV,
-    endpoint: clusterApiUrl('mainnet-beta'),
-    ChainId: ChainId.MainnetBeta,
-  },
 ];
 
 const DEFAULT = ENDPOINTS[0].endpoint;

@@ -1,13 +1,34 @@
 import React, { useEffect, useState } from "react";
-
 import "./board.css";
 import { useBetTracker } from "../../contexts";
-import { Center, createStandaloneToast, Flex, Text } from "@chakra-ui/react";
+import { Center, Flex, Text } from "@chakra-ui/react";
+import ReactDOM from "react-dom";
 
 const formatCell = (cls, text, ctx) => {
+  let elem = document.querySelector("." + cls);
+  const newStyle: any = {
+    fontSize: 18,
+  }
+  if (elem) {
+    let style = getComputedStyle(elem);
+    if (style) {
+      let color = style.backgroundColor;
+      let rgb = color.match(/\d+/g);
+      if (rgb && ctx.grayscale !== "") {
+        let gray = 0;
+        for (let i = 0; i < rgb.length; i++) {
+          gray += parseInt(rgb[i]);
+        }
+        gray /= rgb.length;
+        newStyle.backgroundColor = `rgb(${gray}, ${gray}, ${gray})`;
+      } else if (ctx.grayscale) {
+        console.log(rgb);
+      }
+    }
+  }
   return (
     <div
-      style={{ fontSize: 18 }}
+      style={newStyle}
       className={cls}
       onClick={() => {
         if (!ctx.locked) ctx.increment(cls);
@@ -51,9 +72,30 @@ const formatCell = (cls, text, ctx) => {
 };
 
 const formatSideCell = (pct, cls, text, ctx, fSize = 20) => {
+  let elem = document.querySelector("." + cls);
+  const newStyle: any = {
+    fontSize: 18,
+  }
+  if (elem) {
+    let style = getComputedStyle(elem);
+    if (style) {
+      let color = style.backgroundColor;
+      let rgb = color.match(/\d+/g);
+      if (rgb && ctx.grayscale !== "") {
+        let gray = 0;
+        for (let i = 0; i < rgb.length; i++) {
+          gray += parseInt(rgb[i]);
+        }
+        gray /= rgb.length;
+        newStyle.backgroundColor = `rgb(${gray}, ${gray}, ${gray})`;
+      } else if (ctx.grayscale) {
+        console.log(rgb);
+      }
+    }
+  }
   return (
     <div
-      style={{ fontSize: fSize }}
+      style={newStyle}
       className={cls}
       onClick={() => {
         if (!ctx.locked) ctx.increment(cls);

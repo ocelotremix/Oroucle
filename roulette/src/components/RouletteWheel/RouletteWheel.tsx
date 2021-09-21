@@ -260,6 +260,11 @@ export const RouletteWheel: React.FC = ({ ...children }) => {
     }
   }, [rngCtx.currentSample, rngCtx.duplicated, rngCtx.currentSlot]);
 
+  useEffect(
+    () => {},
+    [betTrackerCtx.grayscale],
+  );
+
   const spin = async () => {
     setState({
       ...state,
@@ -289,7 +294,7 @@ export const RouletteWheel: React.FC = ({ ...children }) => {
 
   return (
     <div>
-      <canvas id="wheel" width="600" height="680" />
+      <canvas id="wheel" width="600" height="680" style={{filter:betTrackerCtx.grayscale}} />
       {state.spinning ? (
         <SpinButton name="Loading..." disabled={true} />
       ) : !betTrackerCtx.locked ? (
@@ -305,7 +310,7 @@ export const RouletteWheel: React.FC = ({ ...children }) => {
           onClick={spin}
         />
       ) : (
-        <SpinButton name="Reset" onClick={reset} />
+        <SpinButton name="Reset" onClick={reset} style={{filter: "grayscale(0)"}} />
       )}
     </div>
   );
