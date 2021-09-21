@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import SpinButton from "../SpinButton";
 import { useRNG } from "../../actions";
 import { useWallet } from "@solana/wallet-adapter-react";
 
 import "./styles.css";
-import { useBetTracker, useConnection } from "../../contexts";
+import { useBetTracker, useConnection, useConnectionConfig } from "../../contexts";
 import { notify } from "../../utils/notifications";
 import { useConfetti } from "../Confetti";
 
@@ -66,7 +66,7 @@ export const RouletteWheel: React.FC = ({ ...children }) => {
     received: true,
     selected: 0,
   });
-
+  let { env } = useConnectionConfig();
   useEffect(() => {
     const renderSector = (start, arc, color) => {
       const canvas = document.getElementById("wheel") as HTMLCanvasElement;
@@ -214,8 +214,23 @@ export const RouletteWheel: React.FC = ({ ...children }) => {
         ) {
           setState({ ...state, spinning: false });
           if (surprise) {
-            confettiCtx.dropConfetti();
+            betTrackerCtx.updateBetResults(rngCtx.currentSample);
+            let bet =  (Object.values(betTrackerCtx.state).reduce(
+              (a, b) => (a as number) + (b as number),
+              0
+            ))
+            let winnings = (Object.values(betTrackerCtx.winningBets).reduce(
+              (a, b) => (a as number) + (b as number),
+              0
+            ));
+            const wonBet = (winnings as number) >= (bet as number);
+            if (!wonBet) {
+              console.log("Setting grayscale")
+              betTrackerCtx.setGrayscale("grayscale(1)")
+            } 
+            confettiCtx.dropConfetti(wonBet);
             setSurprise(false);
+            
           }
         }
         await new Promise((r) => setTimeout(r, 30)).then(() => {
@@ -245,6 +260,11 @@ export const RouletteWheel: React.FC = ({ ...children }) => {
     }
   }, [rngCtx.currentSample, rngCtx.duplicated, rngCtx.currentSlot]);
 
+  useEffect(
+    () => {},
+    [betTrackerCtx.grayscale],
+  );
+
   const spin = async () => {
     setState({
       ...state,
@@ -252,7 +272,7 @@ export const RouletteWheel: React.FC = ({ ...children }) => {
     });
     betTrackerCtx.lock();
     setResponseState({ ...responseState, received: false });
-    if (!(await rngCtx.sample(connection, wallet, rngCtx, betTrackerCtx))) {
+    if (!(await rngCtx.sample(connection, wallet, env, rngCtx, betTrackerCtx))) {
       setState({ ...state, spinning: false });
       setStartIdx(0);
       setResponseState({ received: false, selected: 0 });
@@ -266,6 +286,7 @@ export const RouletteWheel: React.FC = ({ ...children }) => {
       ...state,
       spinning: false,
     });
+    betTrackerCtx.setGrayscale("")
     betTrackerCtx.unlock();
     betTrackerCtx.clear();
     setResponseState({ received: true, selected: 0 });
@@ -273,7 +294,7 @@ export const RouletteWheel: React.FC = ({ ...children }) => {
 
   return (
     <div>
-      <canvas id="wheel" width="600" height="680" />
+      <canvas id="wheel" width="600" height="680" style={{filter:betTrackerCtx.grayscale}} />
       {state.spinning ? (
         <SpinButton name="Loading..." disabled={true} />
       ) : !betTrackerCtx.locked ? (
@@ -289,7 +310,7 @@ export const RouletteWheel: React.FC = ({ ...children }) => {
           onClick={spin}
         />
       ) : (
-        <SpinButton name="Reset" onClick={reset} />
+        <SpinButton name="Reset" onClick={reset} style={{filter: "grayscale(0)"}} />
       )}
     </div>
   );

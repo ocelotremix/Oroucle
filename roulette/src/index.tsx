@@ -34,18 +34,18 @@ ReactDOM.render(
       <WalletProvider>
         <UseWalletProvider chainId={5}>
           <AccountsProvider>
-            <ConfettiProvider>
-              <RNGProvider>
-                <BetTrackerProvider>
+            <BetTrackerProvider>
+              <ConfettiProvider>
+                <RNGProvider>
                   <ChakraProvider theme={theme}>
                     <ColorModeScript
                       initialColorMode={theme.config.initialColorMode}
                     />
                     <App />
                   </ChakraProvider>
-                </BetTrackerProvider>
-              </RNGProvider>
-            </ConfettiProvider>
+                </RNGProvider>
+              </ConfettiProvider>
+            </BetTrackerProvider>
           </AccountsProvider>
         </UseWalletProvider>
       </WalletProvider>

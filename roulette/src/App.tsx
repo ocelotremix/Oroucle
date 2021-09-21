@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import "./App.css";
 import Header from "./components/Header/Header";
 import { RouletteWheel } from "./components/RouletteWheel";
@@ -11,6 +11,7 @@ import { Button, Radio } from "antd";
 function App() {
   const betTrackerCtx: any = useBetTracker();
   const [value, setValue] = useState(1);
+  useEffect(() => {}, [betTrackerCtx.grayscale]);
   return (
     <div className="App" style={{ backgroundColor: "transparent" }}>
       <Header />
@@ -31,19 +32,39 @@ function App() {
             }}
             value={value}
           >
-            <Radio value={1} style={{color:'white'}} onClick={() => betTrackerCtx.updateInc(1)}>
+            <Radio
+              value={1}
+              style={{ color: "white" }}
+              onClick={() => betTrackerCtx.updateInc(1)}
+            >
               1 chip
             </Radio>
-            <Radio value={2} style={{color:'white'}} onClick={() => betTrackerCtx.updateInc(5)}>
+            <Radio
+              value={2}
+              style={{ color: "white" }}
+              onClick={() => betTrackerCtx.updateInc(5)}
+            >
               5 chips
             </Radio>
-            <Radio value={3} style={{color:'white'}} onClick={() => betTrackerCtx.updateInc(10)}>
+            <Radio
+              value={3}
+              style={{ color: "white" }}
+              onClick={() => betTrackerCtx.updateInc(10)}
+            >
               10 chips
             </Radio>
-            <Radio value={4} style={{color:'white'}} onClick={() => betTrackerCtx.updateInc(50)}>
+            <Radio
+              value={4}
+              style={{ color: "white" }}
+              onClick={() => betTrackerCtx.updateInc(50)}
+            >
               50 chips
             </Radio>
-            <Radio value={5} style={{color:'white'}} onClick={() => betTrackerCtx.updateInc(100)}>
+            <Radio
+              value={5}
+              style={{ color: "white" }}
+              onClick={() => betTrackerCtx.updateInc(100)}
+            >
               100 chips
             </Radio>
           </Radio.Group>
@@ -52,17 +73,22 @@ function App() {
           <Flex flexDirection="column" ml="35px" mt="40px">
             <RouletteWheel />
           </Flex>
-          <Flex flexDirection="column" ml="35px" mt="40px">
+          <Flex
+            flexDirection="column"
+            ml="35px"
+            mt="40px"
+          >
             <Flex ml="100px" mt="20px" width="300px" height="630px">
               <BetSelection />
             </Flex>
             <Flex
               ml="170px"
-              mt="23px"
+              mt="32px"
               width="300px"
               height="50px"
               alignItems="center"
               alignContent="center"
+              style={{ filter: betTrackerCtx.grayscale }}
             >
               <SpinButton
                 alignContent="center"

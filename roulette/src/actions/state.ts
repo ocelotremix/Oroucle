@@ -19,22 +19,28 @@ export class RNG {
 
 export class Honeypot {
   initialized: number;
+  honeypotBumpSeed: number;
+  vaultBumpSeed: number;
   owner: StringPublicKey;
-  bumpSeed: number;
+  mint: StringPublicKey;
   tickSize: BN;
   maxBetSize: BN;
   minimumBankSize: BN;
   constructor(args: {
     initialized: number;
+    honeypotBumpSeed: number;
+    vaultBumpSeed: number;
     owner: StringPublicKey;
-    bumpSeed: number;
+    mint: StringPublicKey;
     tickSize: BN;
     maxBetSize: BN;
     minimumBankSize: BN;
   }) {
     this.initialized = args.initialized;
+    this.honeypotBumpSeed = args.honeypotBumpSeed;
+    this.vaultBumpSeed = args.vaultBumpSeed;
     this.owner = args.owner;
-    this.bumpSeed = args.bumpSeed;
+    this.mint = args.mint;
     this.tickSize = args.tickSize;
     this.maxBetSize = args.maxBetSize;
     this.minimumBankSize = args.minimumBankSize;

@@ -1,13 +1,34 @@
-import React, { useState } from "react";
-
+import React, { useEffect, useState } from "react";
 import "./board.css";
 import { useBetTracker } from "../../contexts";
 import { Center, Flex, Text } from "@chakra-ui/react";
+import ReactDOM from "react-dom";
 
 const formatCell = (cls, text, ctx) => {
+  let elem = document.querySelector("." + cls);
+  const newStyle: any = {
+    fontSize: 18,
+  }
+  if (elem) {
+    let style = getComputedStyle(elem);
+    if (style) {
+      let color = style.backgroundColor;
+      let rgb = color.match(/\d+/g);
+      if (rgb && ctx.grayscale !== "") {
+        let gray = 0;
+        for (let i = 0; i < rgb.length; i++) {
+          gray += parseInt(rgb[i]);
+        }
+        gray /= rgb.length;
+        newStyle.backgroundColor = `rgb(${gray}, ${gray}, ${gray})`;
+      } else if (ctx.grayscale) {
+        console.log(rgb);
+      }
+    }
+  }
   return (
     <div
-      style={{ fontSize: 18 }}
+      style={newStyle}
       className={cls}
       onClick={() => {
         if (!ctx.locked) ctx.increment(cls);
@@ -25,14 +46,25 @@ const formatCell = (cls, text, ctx) => {
             <Text textAlign="center"> {text} </Text>{" "}
           </Center>
         </Flex>
-        <Flex flexDirection="row" minH="30%" maxH="30%">
+        <Flex flexDirection="row" minH="30%" maxH="30%" justifyContent='space-between'>
           <Flex flexDirection="column" flexGrow={1}>
-            <Text fontSize={11} color="lime" fontWeight="bold">
+            <Text
+              fontSize={11}
+              color={!ctx.resolved ? "lime" : "red"}
+              fontWeight="bold"
+            >
               {" "}
               {cls in ctx.state ? ctx.state[cls] : ""}{" "}
             </Text>
           </Flex>
-          <Flex flexDirection="column" flexGrow={3}></Flex>
+          <Flex flexDirection="column" flexGrow={3}>
+            <Text fontSize={11} color="lime" fontWeight="bold">
+              {" "}
+              {cls in ctx.winningBets
+                ? "+" + ctx.winningBets[cls].toString()
+                : ""}{" "}
+            </Text>
+          </Flex>
         </Flex>
       </Flex>
     </div>
@@ -40,9 +72,30 @@ const formatCell = (cls, text, ctx) => {
 };
 
 const formatSideCell = (pct, cls, text, ctx, fSize = 20) => {
+  let elem = document.querySelector("." + cls);
+  const newStyle: any = {
+    fontSize: 18,
+  }
+  if (elem) {
+    let style = getComputedStyle(elem);
+    if (style) {
+      let color = style.backgroundColor;
+      let rgb = color.match(/\d+/g);
+      if (rgb && ctx.grayscale !== "") {
+        let gray = 0;
+        for (let i = 0; i < rgb.length; i++) {
+          gray += parseInt(rgb[i]);
+        }
+        gray /= rgb.length;
+        newStyle.backgroundColor = `rgb(${gray}, ${gray}, ${gray})`;
+      } else if (ctx.grayscale) {
+        console.log(rgb);
+      }
+    }
+  }
   return (
     <div
-      style={{ fontSize: fSize }}
+      style={newStyle}
       className={cls}
       onClick={() => {
         if (!ctx.locked) ctx.increment(cls);
@@ -60,19 +113,29 @@ const formatSideCell = (pct, cls, text, ctx, fSize = 20) => {
             <Text textAlign="center"> {text} </Text>{" "}
           </Center>
         </Flex>
-        <Flex flexDirection="column">
-          <Flex flexGrow={5}></Flex>
-          <Flex flexGrow={1} minHeight="100%">
-            <div
-              style={{
-                fontSize: 11,
-                fontWeight: "bold",
-                color: "lime",
-                writingMode: "horizontal-tb",
-              }}
+        <Flex flexDirection="column" justifyContent="space-between">
+          <Flex flexGrow={5}>
+            <Text fontSize={11} color="lime" fontWeight="bold"
+              style={{ writingMode: "horizontal-tb" }}
             >
+              {" "}
+              {cls in ctx.winningBets
+                ? "+" + ctx.winningBets[cls].toString()
+                : ""}{" "}
+            </Text>
+          </Flex>
+          <Flex flexGrow={1} minHeight="100%">
+            <Text
+              fontSize={11}
+              color={
+                !ctx.resolved ? "lime" : "red"
+              }
+              fontWeight="bold"
+              style={{ writingMode: "horizontal-tb" }}
+            >
+              {" "}
               {cls in ctx.state ? ctx.state[cls] : ""}{" "}
-            </div>
+            </Text>
           </Flex>
         </Flex>
       </Flex>
@@ -81,7 +144,12 @@ const formatSideCell = (pct, cls, text, ctx, fSize = 20) => {
 };
 
 export const BetSelection: React.FC = ({ ...children }) => {
-  const betTrackerCtx = useBetTracker();
+  const betTrackerCtx: any = useBetTracker();
+
+  useEffect(
+    () => console.log("Resolved:", betTrackerCtx.resolved),
+    [betTrackerCtx.resolved, betTrackerCtx.winningBets]
+  );
 
   return (
     <div className="container center">
@@ -98,7 +166,7 @@ export const BetSelection: React.FC = ({ ...children }) => {
       {formatCell("Col2", "2 to 1", betTrackerCtx)}
       {formatCell("Col3", "2 to 1", betTrackerCtx)}
       {formatCell("Zero", 0, betTrackerCtx)}
-      {formatCell("DoubleZero", '00', betTrackerCtx)}
+      {formatCell("DoubleZero", "00", betTrackerCtx)}
       {formatCell("R1", 1, betTrackerCtx)}
       {formatCell("B2", 2, betTrackerCtx)}
       {formatCell("R3", 3, betTrackerCtx)}

@@ -8,9 +8,9 @@ import { WalletNotConnectedError } from "@solana/wallet-adapter-base";
 import BN from "bn.js";
 import { serialize } from "borsh";
 import { InitializeArgs, InitializeHoneypotArgs, RouletteArgs, RouletteBet, SampleArgs, WithdrawFromHoneypotArgs } from "./state";
-import { toPublicKey, StringPublicKey } from "../utils";
+import { toPublicKey, StringPublicKey, TOKEN_PROGRAM_ID } from "../utils";
 import { schema } from "./schema";
-import { RNG_PROGRAM_ID } from "./constants";
+import { MAX_BET_SIZE, MINIMUM_BANK_SIZE, RNG_PROGRAM_ID, TICK_SIZE } from "./constants";
 
 export const initializeInstruction = async (
   rngAccountKey: StringPublicKey,
@@ -120,13 +120,14 @@ export const sampleInstruction = async (
 export const initializeHoneypotInstruction = async (
   honeypotAccount: StringPublicKey,
   vaultAccount: StringPublicKey,
+  mintAccount: StringPublicKey,
   wallet: any
 ) => {
   if (!wallet.publicKey) throw new WalletNotConnectedError();
   let settings = new InitializeHoneypotArgs({
-    tickSize: new BN(1000000),
-    maxBetSize: new BN(100),
-    minimumBankSize: new BN(10000000000),
+    tickSize: TICK_SIZE,
+    maxBetSize: MAX_BET_SIZE,
+    minimumBankSize: MINIMUM_BANK_SIZE,
   });
   const data = Buffer.from(serialize(schema, settings));
   return {
@@ -139,13 +140,23 @@ export const initializeHoneypotInstruction = async (
             isWritable: true,
           },
           {
+            pubkey: toPublicKey(mintAccount),
+            isSigner: false,
+            isWritable: false,
+          },
+          {
             pubkey: toPublicKey(vaultAccount),
             isSigner: false,
             isWritable: true,
           },
           {
-            pubkey: toPublicKey(wallet.publicKey),
+            pubkey: wallet.publicKey,
             isSigner: true,
+            isWritable: false,
+          },
+          {
+            pubkey: TOKEN_PROGRAM_ID,
+            isSigner: false,
             isWritable: false,
           },
           {
@@ -169,6 +180,8 @@ export const initializeHoneypotInstruction = async (
 export const withdrawFromHoneypotInstruction = async (
   honeypotAccount: StringPublicKey,
   vaultAccount: StringPublicKey,
+  tokenAccount: StringPublicKey,
+  mintAccount: StringPublicKey,
   wallet: any,
   amount: BN,
 ) => {
@@ -192,12 +205,22 @@ export const withdrawFromHoneypotInstruction = async (
             isWritable: true,
           },
           {
+            pubkey: toPublicKey(mintAccount),
+            isSigner: false,
+            isWritable: false,
+          },
+          {
             pubkey: toPublicKey(wallet.publicKey),
             isSigner: true,
             isWritable: false,
           },
           {
-            pubkey: SystemProgram.programId,
+            pubkey: toPublicKey(tokenAccount),
+            isSigner: false,
+            isWritable: true,
+          },
+          {
+            pubkey: TOKEN_PROGRAM_ID,
             isSigner: false,
             isWritable: false,
           },
@@ -213,6 +236,8 @@ export const rouletteInstruction = async (
   rngAccountKey: StringPublicKey,
   honeypotAccount: StringPublicKey,
   vaultAccount: StringPublicKey,
+  tokenAccount: StringPublicKey,
+  mintAccount: StringPublicKey,
   pythProductKey1: StringPublicKey,
   pythPriceKey1: StringPublicKey,
   pythProductKey2: StringPublicKey,
@@ -237,7 +262,17 @@ export const rouletteInstruction = async (
           {
             pubkey: toPublicKey(wallet.publicKey),
             isSigner: true,
+            isWritable: false,
+          },
+          {
+            pubkey: toPublicKey(tokenAccount),
+            isSigner: false,
             isWritable: true,
+          },
+          {
+            pubkey: toPublicKey(mintAccount),
+            isSigner: false,
+            isWritable: false,
           },
           {
             pubkey: toPublicKey(honeypotAccount),
@@ -250,7 +285,7 @@ export const rouletteInstruction = async (
             isWritable: true,
           },
           {
-            pubkey: SystemProgram.programId,
+            pubkey: TOKEN_PROGRAM_ID,
             isSigner: false,
             isWritable: false,
           },

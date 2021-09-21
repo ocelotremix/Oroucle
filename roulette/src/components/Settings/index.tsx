@@ -29,24 +29,24 @@ export const Settings = ({
         <Flex>
           {!connected && (
             <>
-            <Select
-              onSelect={setEndpoint}
-              value={endpoint}
-              style={{ width: "100%", marginBottom: 5 }}
-            >
-              {ENDPOINTS.map(({ name, endpoint }) => (
-                <Select.Option value={endpoint} key={endpoint}>
-                  {name}
-                </Select.Option>
-              ))}
-            </Select>
-            <Button
-              type="primary"
-              onClick={handleConnect}
-              style={{ marginBottom: 5 }}
-            >
-              Connect
-            </Button>
+              <Select
+                onSelect={setEndpoint}
+                value={endpoint}
+                style={{ width: "100%", marginBottom: 5 }}
+              >
+                {ENDPOINTS.map(({ name, endpoint }) => (
+                  <Select.Option value={endpoint} key={endpoint}>
+                    {name}
+                  </Select.Option>
+                ))}
+              </Select>
+              <Button
+                type="primary"
+                onClick={handleConnect}
+                style={{ marginBottom: 5 }}
+              >
+                Connect
+              </Button>
             </>
           )}
         </Flex>

@@ -2,6 +2,7 @@
   "name": "roulette",
   "version": "0.1.0",
   "private": true,
+  "homepage": "https://rliquito.github.io/Oroucle",
   "dependencies": {
     "@chakra-ui/react": "^1.6.6",
     "@emotion/react": "^11",
@@ -18,7 +19,7 @@
     "@project-serum/serum": "^0.13.52",
     "@project-serum/sol-wallet-adapter": "^0.2.5",
     "@reduxjs/toolkit": "^1.6.1",
-    "@solana/spl-token": "0.1.6",
+    "@solana/spl-token": "^0.1.8",
     "@solana/spl-token-registry": "0.2.202",
     "@solana/wallet-adapter-base": "^0.4.1",
     "@solana/wallet-adapter-react": "^0.7.1",
@@ -63,7 +64,9 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build"
   },
   "eslintConfig": {
     "extends": [
@@ -82,5 +85,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "gh-pages": "^3.2.3"
   }
 }
