@@ -5,7 +5,7 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { deserializeAccount, useBetTracker, useConnection, useConnectionConfig } from "../../contexts";
 import { PublicKey } from "@solana/web3.js";
 import { TOKEN_PROGRAM_ID, AccountLayout } from "@solana/spl-token";
-import { DEVNET_MINT, MAINNET_MINT } from "../../actions";
+import { DEVNET_MINT, MAINNET_MINT, TICK_SIZE } from "../../actions";
 import { SPL_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID } from "../../utils/ids";
 
 
@@ -63,7 +63,7 @@ export const BalancePanel: React.FC = () => {
       marginTop="5px"
       width="100px"
     >
-      <Balance cryptoAmount={betTrackerCtx.chips as number} />
+      <Balance cryptoAmount={Math.floor((betTrackerCtx.chips as number) / TICK_SIZE.toNumber())} />
     </Flex>
   );
 };

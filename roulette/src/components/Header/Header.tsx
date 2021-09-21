@@ -8,6 +8,7 @@ import {
   useBetTracker,
   useModal,
   useWalletModal,
+  deserializeAccount,
 } from "../../contexts";
 import { useWallet } from "@solana/wallet-adapter-react";
 import {
@@ -24,17 +25,19 @@ import {
   MAINNET_MINT,
   RNG_PROGRAM_ID,
   mintChips,
+  DECIMALS,
 } from "../../actions";
 import BalancePanel from "../../components/BalancePanel/BalancePanel";
+import { set } from "lodash";
 
 const getMintString = (connection, wallet, env, ctx) => {
   let mintString;
   let color;
   let textColor;
   const maxChips = MAX_BET_SIZE.toNumber();
-  if (ctx.loaded && ctx.chips < maxChips) {
+  if (env === 'devnet' && ctx.loaded && ctx.chips < maxChips) {
     const remainder = maxChips - ctx.chips;
-    mintString = `Mint ${remainder} chips`;
+    mintString = `Mint ${remainder / TICK_SIZE.toNumber()} chips`;
     color = "lightgreen";
     textColor = "black";
     return (
@@ -60,6 +63,7 @@ export const Header: React.FC = () => {
   const { env } = useConnectionConfig();
   const [honeypotButton, setHoneypotButton] = useState(true);
   const betTrackerCtx: any = useBetTracker();
+  const [houseBalance, setHouseBalance] = useState(0);
   const open = useCallback(() => setVisible(true), [setVisible]);
 
   const handleConnect = useCallback(() => {
@@ -97,10 +101,56 @@ export const Header: React.FC = () => {
     getHoneypot();
   }, [connection]);
 
+  useEffect(() => {
+    let subId;
+    const getHouseBalance = async () => {
+      if (!wallet) {
+        return 0;
+      }
+      if (!wallet.publicKey) {
+        return 0;
+      }
+      const mint = (env === "devnet") ? DEVNET_MINT : MAINNET_MINT;
+      let [vaultKey, _vaultBumpSeed] = await PublicKey.findProgramAddress(
+        [
+          Buffer.from("vault"),
+          mint.toBuffer(),
+          new Uint8Array(TICK_SIZE.toArray("le", 8)),
+          new Uint8Array(MAX_BET_SIZE.toArray("le", 8)),
+          new Uint8Array(MINIMUM_BANK_SIZE.toArray("le", 8)),
+        ],
+        RNG_PROGRAM_ID
+      );
+      const result = await connection.getAccountInfo(vaultKey);
+      if (result) {
+        console.log("Received account data");
+        const tokenAccount = deserializeAccount(result.data);
+        console.log(tokenAccount)
+        setHouseBalance(tokenAccount.amount.toNumber());
+      }
+      betTrackerCtx.setLoaded(true);
+      subId = connection.onAccountChange(vaultKey, (result) => {
+        if (result) {
+          console.log("Received account data");
+          try {
+            const tokenAccount = deserializeAccount(result.data);
+            setHouseBalance(tokenAccount.amount.toNumber());
+          } catch(e) {
+            console.log("Failed to deserialize account", e)
+          }
+        }
+      });
+    };
+    getHouseBalance();
+    return () => {
+      if (subId) connection.removeAccountChangeListener(subId);
+    };
+  }, [wallet.connected, wallet, connection, setHouseBalance]);
+
   const handleChange = open;
   return (
     <Flex backgroundColor="#444444" justifyContent="space-between" minW="100%" filter={betTrackerCtx.grayscale}>
-      <Flex justifyContent="flex-begin">
+      <Flex justifyContent="flex-begin" minW="500px">
         <BalancePanel />
         <Flex
           marginLeft="180px"
@@ -111,7 +161,7 @@ export const Header: React.FC = () => {
           {getMintString(connection, wallet, env, betTrackerCtx)}
         </Flex>
       </Flex>
-      <Flex
+      {/* <Flex
         height="62px"
         marginLeft="20px"
         justifyContent="flex-begin"
@@ -132,8 +182,19 @@ export const Header: React.FC = () => {
             Create Honeypot{" "}
           </Button>
         )}
+      </Flex> */}
+      <Flex
+        height="62px"
+        minW="400px"
+        marginLeft="20px"
+        justifyContent="50%"
+        alignItems="center"
+        fontSize={20}
+        color="white"
+      >
+        House Balance: {houseBalance * Math.pow(10, -DECIMALS)} COPE
       </Flex>
-      <Flex height="62px" justifyContent="flex-end" alignItems="center">
+      <Flex height="62px" width="300px" justifyContent="flex-end" alignItems="center">
         <ConnectButton
           isConnected={connected}
           mr="36px"

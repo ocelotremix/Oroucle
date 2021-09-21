@@ -1,25 +1,26 @@
 import { PublicKey } from "@solana/web3.js";
 import BN from "bn.js";
 
-export const TICK_SIZE = new BN(1);
-export const MAX_BET_SIZE = new BN(100);
-export const MINIMUM_BANK_SIZE = new BN(10000);
+export const DECIMALS = 6;
+export const TICK_SIZE = new BN(1000000);
+export const MAX_BET_SIZE = new BN(100000000);
+export const MINIMUM_BANK_SIZE = new BN(3500000000);
 
-export const RNG_PROGRAM_ID = new PublicKey("GejaApTc3ShWAgv9jZ8JaFYjZwAw53xz4vD1oAMkjAkc");
+export const RNG_PROGRAM_ID = new PublicKey("rouQqKK4CKYgozmG8fuLTaAt7Crngw3dxsGnrWteuno");
 export const DEVNET_SOL_PRODUCT_ORACLE = new PublicKey("3Mnn2fX6rQyUsyELYms1sBJyChWofzSNRoqYzvgMVz5E");
 export const DEVNET_SOL_PRICE_ORACLE = new PublicKey("J83w4HKfqxwcq3BEMMkPFSppX3gqekLyLJBexebFVkix");
 export const DEVNET_BTC_PRODUCT_ORACLE = new PublicKey("3m1y5h2uv7EQL3KaJZehvAJa4yDNvgc5yAdL9KPMKwvk");
 export const DEVNET_BTC_PRICE_ORACLE = new PublicKey("HovQMDrbAgAYPCmHVSrezcSmkMtXSSUsLDFANExrZh2J");
 export const DEVNET_ETH_PRODUCT_ORACLE = new PublicKey("2ciUuGZiee5macAMeQ7bHGTJtwcYTgnt6jdmQnnKZrfu");
 export const DEVNET_ETH_PRICE_ORACLE = new PublicKey("EdVCmQ9FSPcVe5YySXDPCRmc8aDQLKJ9xvYBMZPie1Vw");
-export const DEVNET_MINT = new PublicKey("8fwwxHB1DDSXgQ8x7qSjRcoBZv5HpNuHaw4TQ38uXx6r");
-export const DEVNET_MINT_KEYPAIR = [123, 54, 202, 92, 60, 81, 101, 228, 217, 69, 240, 128, 106, 56, 4, 78, 186, 73, 164, 115, 245, 230, 127, 74, 150, 128, 75, 75, 224, 181, 87, 213, 113, 252, 2, 46, 232, 183, 214, 164, 222, 80, 242, 143, 151, 50, 75, 74, 82, 90, 15, 33, 38, 15, 184, 235, 146, 30, 189, 223, 40, 134, 41, 95];
-export const DEVNET_MINT_AUTHORITY = [6, 56, 225, 19, 148, 108, 2, 189, 23, 116, 221, 144, 88, 78, 185, 210, 93, 107, 148, 10, 84, 131, 21, 162, 215, 130, 170, 189, 146, 110, 135, 241, 85, 133, 135, 228, 90, 11, 163, 13, 224, 175, 27, 28, 92, 169, 106, 191, 87, 90, 53, 82, 96, 122, 249, 50, 60, 78, 63, 14, 32, 243, 164, 53];
+export const DEVNET_MINT = new PublicKey("6dsjVxJGGjvvAPT7zkofsuv9cRUGU2vA51CSqVCpTxce");
+export const DEVNET_MINT_KEYPAIR = [140, 153, 174, 106, 128, 238, 133, 77, 118, 137, 44, 181, 197, 159, 92, 116, 183, 221, 29, 16, 17, 93, 129, 9, 249, 78, 194, 148, 128, 179, 172, 102, 83, 188, 181, 27, 211, 171, 12, 252, 90, 164, 17, 213, 21, 109, 75, 4, 234, 70, 52, 111, 28, 13, 157, 34, 1, 179, 61, 127, 121, 243, 132, 175];
+export const DEVNET_MINT_AUTHORITY = [146, 133, 123, 2, 141, 56, 242, 164, 120, 66, 53, 190, 204, 22, 197, 239, 78, 22, 44, 233, 58, 168, 80, 97, 116, 6, 44, 7, 81, 230, 147, 174, 3, 109, 228, 205, 45, 81, 70, 97, 174, 106, 205, 12, 103, 80, 17, 220, 214, 252, 152, 63, 153, 11, 80, 111, 153, 20, 182, 173, 22, 205, 245, 55];
 
-export const MAINNET_SOL_PRODUCT_ORACLE = new PublicKey("3Mnn2fX6rQyUsyELYms1sBJyChWofzSNRoqYzvgMVz5E");
-export const MAINNET_SOL_PRICE_ORACLE = new PublicKey("J83w4HKfqxwcq3BEMMkPFSppX3gqekLyLJBexebFVkix");
-export const MAINNET_BTC_PRODUCT_ORACLE = new PublicKey("3m1y5h2uv7EQL3KaJZehvAJa4yDNvgc5yAdL9KPMKwvk");
-export const MAINNET_BTC_PRICE_ORACLE = new PublicKey("HovQMDrbAgAYPCmHVSrezcSmkMtXSSUsLDFANExrZh2J");
-export const MAINNET_ETH_PRODUCT_ORACLE = new PublicKey("2ciUuGZiee5macAMeQ7bHGTJtwcYTgnt6jdmQnnKZrfu");
-export const MAINNET_ETH_PRICE_ORACLE = new PublicKey("EdVCmQ9FSPcVe5YySXDPCRmc8aDQLKJ9xvYBMZPie1Vw");
+export const MAINNET_SOL_PRODUCT_ORACLE = new PublicKey("ALP8SdU9oARYVLgLR7LrqMNCYBnhtnQz1cj6bwgwQmgj");
+export const MAINNET_SOL_PRICE_ORACLE = new PublicKey("H6ARHf6YXhGYeQfUzQNGk6rDNnLBQKrenN712K4AQJEG");
+export const MAINNET_BTC_PRODUCT_ORACLE = new PublicKey("4aDoSXJ5o3AuvL7QFeR6h44jALQfTmUUCTVGDD6aoJTM");
+export const MAINNET_BTC_PRICE_ORACLE = new PublicKey("GVXRSBjFk6e6J3NbVPXohDJetcTjaeeuykUpbQF8UoMU");
+export const MAINNET_ETH_PRODUCT_ORACLE = new PublicKey("EMkxjGC1CQ7JLiutDbfYb7UKb3zm9SJcUmr1YicBsdpZ");
+export const MAINNET_ETH_PRICE_ORACLE = new PublicKey("JBu1AL4obBcCMqKBBxhpWCNUt136ijcuMZLFvTP7iWdB");
 export const MAINNET_MINT = new PublicKey("8HGyAAB1yoM1ttS7pXjHMa3dukTFGQggnFFH3hJZgzQh"); // COPE

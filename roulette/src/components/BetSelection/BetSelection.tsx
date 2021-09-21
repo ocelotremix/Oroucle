@@ -54,14 +54,14 @@ const formatCell = (cls, text, ctx) => {
               fontWeight="bold"
             >
               {" "}
-              {cls in ctx.state ? ctx.state[cls] : ""}{" "}
+              {cls in ctx.state ? Math.floor(ctx.state[cls]) : ""}{" "}
             </Text>
           </Flex>
           <Flex flexDirection="column" flexGrow={3}>
             <Text fontSize={11} color="lime" fontWeight="bold">
               {" "}
               {cls in ctx.winningBets
-                ? "+" + ctx.winningBets[cls].toString()
+                ? "+" + Math.floor(ctx.winningBets[cls]).toString()
                 : ""}{" "}
             </Text>
           </Flex>
@@ -120,7 +120,7 @@ const formatSideCell = (pct, cls, text, ctx, fSize = 20) => {
             >
               {" "}
               {cls in ctx.winningBets
-                ? "+" + ctx.winningBets[cls].toString()
+                ? "+" + Math.floor(ctx.winningBets[cls]).toString()
                 : ""}{" "}
             </Text>
           </Flex>
@@ -134,7 +134,7 @@ const formatSideCell = (pct, cls, text, ctx, fSize = 20) => {
               style={{ writingMode: "horizontal-tb" }}
             >
               {" "}
-              {cls in ctx.state ? ctx.state[cls] : ""}{" "}
+              {cls in ctx.state ? Math.floor(ctx.state[cls]) : ""}{" "}
             </Text>
           </Flex>
         </Flex>
