@@ -36,9 +36,9 @@ export type ENV =
 
 export const ENDPOINTS = [
   {
-    name: 'devnet' as ENV,
-    endpoint: clusterApiUrl('devnet'),
-    ChainId: ChainId.Devnet,
+    name: 'mainnet-beta' as ENV,
+    endpoint: "https://cope.rpcpool.com",
+    ChainId: ChainId.MainnetBeta,
   },
 ];
 
@@ -594,7 +594,7 @@ async function awaitTransactionSignatureConfirmation(
         try {
           const signatureStatuses = await connection.getSignatureStatuses([txid]);
           status = signatureStatuses && signatureStatuses.value[0];
-          console.log(`https://explorer.solana.com/tx/${txid}?cluster=devnet`) // TODO
+          console.log(`https://explorer.solana.com/tx/${txid}?cluster=mainnet-beta`) // TODO
           if (!done) {
             if (!status) {
               console.log('REST null result for', txid, status);

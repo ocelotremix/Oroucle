@@ -10,8 +10,8 @@ export const Balance: React.FC<BalanceProps> = ({
   cryptoAmount,
   ...restProps
 }) => {
-  const balance = "My Balance";
-  const cryptoAbbr = "Chips";
+  const balance = "Your Balance";
+  const cryptoAbbr = "COPE";
   return (
     <Box
       display="flex"

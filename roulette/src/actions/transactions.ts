@@ -1,22 +1,15 @@
 import {
   Connection,
   Keypair,
-  Account,
   PublicKey,
   TransactionInstruction,
-  sendAndConfirmTransaction,
-  Transaction,
 } from "@solana/web3.js";
 import {
   Connection as Conn,
-  useConnection,
-  useConnectionConfig,
 } from "../contexts";
 import {
   createAssociatedTokenAccountInstruction,
-  createMint,
   createMintFromAccount,
-  createUninitializedMint,
 } from "./account";
 import {
   initializeInstruction,
@@ -29,6 +22,7 @@ import {
   toPublicKey,
 } from "../utils";
 import {
+  DECIMALS,
   RNG_PROGRAM_ID,
   DEVNET_SOL_PRICE_ORACLE,
   DEVNET_SOL_PRODUCT_ORACLE,
@@ -79,7 +73,7 @@ const getMintAccount = async (
         createMintIx,
         wallet.publicKey,
         mintRent,
-        0,
+        DECIMALS,
         mintAuthority.publicKey,
         mintAuthority.publicKey,
         mintAccountKeypair
@@ -383,6 +377,7 @@ export const sample = async (
     );
     sampleIx = ix;
   } else {
+    console.log("Mainnet")
     const { ix } = await rouletteInstruction(
       rngAccountKey.toBase58(),
       honeypotKey.toBase58(),

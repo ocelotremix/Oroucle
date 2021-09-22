@@ -8,7 +8,6 @@ import {
   ConnectionProvider,
   WalletProvider,
 } from "./contexts";
-import { UseWalletProvider } from "use-wallet";
 
 import "antd/dist/antd.css";
 import "@fontsource/open-sans";
@@ -32,7 +31,6 @@ ReactDOM.render(
   <React.StrictMode>
     <ConnectionProvider>
       <WalletProvider>
-        <UseWalletProvider chainId={5}>
           <AccountsProvider>
             <BetTrackerProvider>
               <ConfettiProvider>
@@ -47,7 +45,6 @@ ReactDOM.render(
               </ConfettiProvider>
             </BetTrackerProvider>
           </AccountsProvider>
-        </UseWalletProvider>
       </WalletProvider>
     </ConnectionProvider>
   </React.StrictMode>,

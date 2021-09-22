@@ -384,7 +384,11 @@ fn roulette(
             .checked_add(bet.amount)
             .ok_or(ProgramError::InvalidInstructionData)?;
     }
-    if total_amount > honeypot.max_bet_size {
+    if total_amount
+        .checked_mul(honeypot.tick_size)
+        .ok_or(ProgramError::InsufficientFunds)?
+        > honeypot.max_bet_size
+    {
         msg!("Bet is too large");
         return Err(ProgramError::InvalidInstructionData.into());
     }

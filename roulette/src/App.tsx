@@ -7,6 +7,7 @@ import { Flex } from "@chakra-ui/layout";
 import SpinButton from "./components/SpinButton";
 import { useBetTracker } from "./contexts";
 import { Button, Radio } from "antd";
+import { TICK_SIZE } from "./actions";
 
 function App() {
   const betTrackerCtx: any = useBetTracker();
@@ -35,37 +36,37 @@ function App() {
             <Radio
               value={1}
               style={{ color: "white" }}
-              onClick={() => betTrackerCtx.updateInc(1)}
+              onClick={() => betTrackerCtx.updateInc(TICK_SIZE.toNumber())}
             >
-              1 chip
+              1 COPE 
             </Radio>
             <Radio
               value={2}
               style={{ color: "white" }}
-              onClick={() => betTrackerCtx.updateInc(5)}
+              onClick={() => betTrackerCtx.updateInc(5 * TICK_SIZE.toNumber())}
             >
-              5 chips
+              5 COPE 
             </Radio>
             <Radio
               value={3}
               style={{ color: "white" }}
-              onClick={() => betTrackerCtx.updateInc(10)}
+              onClick={() => betTrackerCtx.updateInc(10 * TICK_SIZE.toNumber())}
             >
-              10 chips
+              10 COPE
             </Radio>
             <Radio
               value={4}
               style={{ color: "white" }}
-              onClick={() => betTrackerCtx.updateInc(50)}
+              onClick={() => betTrackerCtx.updateInc(50 * TICK_SIZE.toNumber())}
             >
-              50 chips
+              50 COPE 
             </Radio>
             <Radio
               value={5}
               style={{ color: "white" }}
-              onClick={() => betTrackerCtx.updateInc(100)}
+              onClick={() => betTrackerCtx.updateInc(100 * TICK_SIZE.toNumber())}
             >
-              100 chips
+              100 COPE 
             </Radio>
           </Radio.Group>
         </Flex>

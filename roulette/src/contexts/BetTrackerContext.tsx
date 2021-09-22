@@ -1,5 +1,5 @@
 import { createContext, FC, ReactNode, useContext, useState } from "react";
-import { BET_TO_NUMBER, NUMBER_TO_COLOR } from "../actions";
+import { BET_TO_NUMBER, MAX_BET_SIZE, NUMBER_TO_COLOR, TICK_SIZE } from "../actions";
 
 export const BetTrackerContext = createContext({});
 
@@ -12,7 +12,7 @@ export const BetTrackerProvider: FC<{ children: ReactNode }> = ({
 }) => {
   const [state, setState] = useState({});
   const [locked, setLocked] = useState(false);
-  const [inc, setInc] = useState(1);
+  const [inc, setInc] = useState(TICK_SIZE.toNumber());
   const [totalSize, setTotalSize] = useState(0);
   const [winningBets, setWinningBets] = useState({});
   const [resolved, setResolved] = useState(false);
@@ -65,10 +65,11 @@ export const BetTrackerProvider: FC<{ children: ReactNode }> = ({
   };
 
   const increment = (cls) => {
-    let size = inc;
+    let size = inc / TICK_SIZE.toNumber();
     let currTotal = totalSize;
-    if (inc + totalSize > chips) {
-      size = chips - totalSize;
+    let maxSize = Math.min(chips / TICK_SIZE.toNumber(), MAX_BET_SIZE.toNumber() / TICK_SIZE.toNumber())
+    if (size + totalSize > maxSize) {
+      size = maxSize - totalSize;
     }
     if (size > 0) {
       if (!(cls in state)) {
@@ -92,8 +93,9 @@ export const BetTrackerProvider: FC<{ children: ReactNode }> = ({
   const decrement = (cls) => {
     if (cls in state && state[cls] > 0) {
       let currTotal = totalSize;
-      state[cls] -= inc;
-      currTotal -= inc;
+      let size = inc / TICK_SIZE.toNumber();
+      state[cls] -= size;
+      currTotal -= size;
       if (state[cls] <= 0) {
         delete state[cls];
         setTotalSize(0);

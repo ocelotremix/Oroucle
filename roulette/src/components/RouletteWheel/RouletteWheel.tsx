@@ -310,7 +310,7 @@ export const RouletteWheel: React.FC = ({ ...children }) => {
           onClick={spin}
         />
       ) : (
-        <SpinButton name="Reset" onClick={reset} style={{filter: "grayscale(0)"}} />
+        <SpinButton name="Reset" onClick={reset} />
       )}
     </div>
   );
