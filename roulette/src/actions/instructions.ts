@@ -1,6 +1,7 @@
 import {
   SystemProgram,
   SYSVAR_CLOCK_PUBKEY,
+  SYSVAR_INSTRUCTIONS_PUBKEY,
   SYSVAR_RENT_PUBKEY,
   TransactionInstruction,
 } from "@solana/web3.js";
@@ -286,6 +287,11 @@ export const rouletteInstruction = async (
           },
           {
             pubkey: TOKEN_PROGRAM_ID,
+            isSigner: false,
+            isWritable: false,
+          },
+          {
+            pubkey: SYSVAR_INSTRUCTIONS_PUBKEY,
             isSigner: false,
             isWritable: false,
           },
