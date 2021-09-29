@@ -6,7 +6,8 @@ export const TICK_SIZE = new BN(1000000);
 export const MAX_BET_SIZE = new BN(100000000);
 export const MINIMUM_BANK_SIZE = new BN(3500000000);
 
-export const RNG_PROGRAM_ID = new PublicKey("rouQqKK4CKYgozmG8fuLTaAt7Crngw3dxsGnrWteuno");
+// export const RNG_PROGRAM_ID = new PublicKey("rouQqKK4CKYgozmG8fuLTaAt7Crngw3dxsGnrWteuno");
+export const RNG_PROGRAM_ID = new PublicKey("GVKYv6LoQsvjceVasABhzgeDH1nc6RyxovNENLk1uuMG");
 export const DEVNET_SOL_PRODUCT_ORACLE = new PublicKey("3Mnn2fX6rQyUsyELYms1sBJyChWofzSNRoqYzvgMVz5E");
 export const DEVNET_SOL_PRICE_ORACLE = new PublicKey("J83w4HKfqxwcq3BEMMkPFSppX3gqekLyLJBexebFVkix");
 export const DEVNET_BTC_PRODUCT_ORACLE = new PublicKey("3m1y5h2uv7EQL3KaJZehvAJa4yDNvgc5yAdL9KPMKwvk");

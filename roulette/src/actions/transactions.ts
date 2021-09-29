@@ -3,6 +3,7 @@ import {
   Keypair,
   PublicKey,
   TransactionInstruction,
+  SystemProgram,
 } from "@solana/web3.js";
 import {
   Connection as Conn,
@@ -366,12 +367,12 @@ export const sample = async (
       vaultKey.toBase58(),
       tokenAccount.toBase58(),
       DEVNET_MINT.toBase58(),
+      DEVNET_ETH_PRODUCT_ORACLE.toBase58(),
+      DEVNET_ETH_PRICE_ORACLE.toBase58(),
       DEVNET_SOL_PRODUCT_ORACLE.toBase58(),
       DEVNET_SOL_PRICE_ORACLE.toBase58(),
       DEVNET_BTC_PRODUCT_ORACLE.toBase58(),
       DEVNET_BTC_PRICE_ORACLE.toBase58(),
-      DEVNET_ETH_PRODUCT_ORACLE.toBase58(),
-      DEVNET_ETH_PRICE_ORACLE.toBase58(),
       wallet,
       bets
     );
@@ -384,17 +385,21 @@ export const sample = async (
       vaultKey.toBase58(),
       tokenAccount.toBase58(),
       MAINNET_MINT.toBase58(),
+      MAINNET_ETH_PRODUCT_ORACLE.toBase58(),
+      MAINNET_ETH_PRICE_ORACLE.toBase58(),
       MAINNET_SOL_PRODUCT_ORACLE.toBase58(),
       MAINNET_SOL_PRICE_ORACLE.toBase58(),
       MAINNET_BTC_PRODUCT_ORACLE.toBase58(),
       MAINNET_BTC_PRICE_ORACLE.toBase58(),
-      MAINNET_ETH_PRODUCT_ORACLE.toBase58(),
-      MAINNET_ETH_PRICE_ORACLE.toBase58(),
       wallet,
       bets
     );
     sampleIx = ix;
   }
+
+  let dummyIx: TransactionInstruction[] = [
+    SystemProgram.transfer({fromPubkey: wallet.publicKey, lamports: 1, toPubkey: wallet.publicKey})
+  ];
 
   const response = await Conn.sendTransactionWithRetry(
     connection,

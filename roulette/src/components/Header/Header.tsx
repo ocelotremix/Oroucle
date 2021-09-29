@@ -161,7 +161,7 @@ export const Header: React.FC = () => {
           {getMintString(connection, wallet, env, betTrackerCtx)}
         </Flex>
       </Flex>
-      {/* <Flex
+      <Flex
         height="62px"
         marginLeft="20px"
         justifyContent="flex-begin"
@@ -182,7 +182,7 @@ export const Header: React.FC = () => {
             Create Honeypot{" "}
           </Button>
         )}
-      </Flex> */}
+      </Flex>
       <Flex
         height="62px"
         minW="400px"

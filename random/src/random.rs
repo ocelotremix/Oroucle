@@ -52,7 +52,7 @@ pub fn get_market_prices_and_confindence_interval<'a>(
         pyth_price.last_slot,
         pyth_price.prev_slot
     );
-    if current_slot > pyth_price.agg.pub_slot
+    if current_slot >= pyth_price.agg.pub_slot
         && current_slot - pyth_price.agg.pub_slot < slot_tolerance
     {
         Ok((pyth_price.agg.price as u64, pyth_price.agg.conf))

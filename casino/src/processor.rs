@@ -2,7 +2,7 @@ use crate::system_utils::create_or_allocate_account_raw;
 use crate::validation_utils::{
     assert_initialized, assert_is_ata, assert_keys_equal, assert_owned_by, assert_signer,
 };
-use crate::{instruction::RandomInstruction, state::RouletteBet};
+use crate::{instruction::RandomInstruction, state::RouletteBet, error::RouletteError};
 use arrayref::array_refs;
 use borsh::{BorshDeserialize, BorshSerialize};
 use solana_program::{
@@ -13,7 +13,8 @@ use solana_program::{
     program_error::ProgramError,
     program_pack::Pack,
     pubkey::Pubkey,
-    system_program,
+    serialize_utils::read_u16,
+    system_program, sysvar,
 };
 use spl_token::{
     instruction::{initialize_account, transfer},
@@ -325,7 +326,7 @@ fn roulette(
     bets: Vec<RouletteBet>,
 ) -> ProgramResult {
     msg!("Starting Roulette spin");
-    let (main_accounts, oracle_accounts) = array_refs![accounts, 7; .. ;];
+    let (main_accounts, oracle_accounts) = array_refs![accounts, 8; .. ;];
     let (random_sample, slot) = random::random::sample(oracle_accounts, tolerance)?;
     let account_info_iter = &mut main_accounts.iter();
     let rng_info = next_account_info(account_info_iter)?;
@@ -335,10 +336,28 @@ fn roulette(
     let honeypot_info = next_account_info(account_info_iter)?;
     let vault_info = next_account_info(account_info_iter)?;
     let token_program_info = next_account_info(account_info_iter)?;
+    let instruction_sysvar_account_info = next_account_info(account_info_iter)?;
     assert_keys_equal(spl_token::id(), *token_program_info.key)?;
     msg!("ATA check");
     assert_is_ata(gambler_token_account_info, gambler_info.key, mint_info.key)?;
     assert_owned_by(honeypot_info, program_id)?;
+    if *instruction_sysvar_account_info.key != sysvar::instructions::id() {
+        return Err(ProgramError::InvalidInstructionData);
+    }
+    let instruction_sysvar = instruction_sysvar_account_info.data.borrow();
+    let current_instruction = sysvar::instructions::load_current_index(&instruction_sysvar);
+    let mut idx = 0;
+    let num_instructions =
+        read_u16(&mut idx, &instruction_sysvar).map_err(|_| ProgramError::InvalidAccountData)?;
+    msg!(
+        "current_ix: {}, num_ix: {}",
+        current_instruction,
+        num_instructions
+    );
+    if current_instruction < num_instructions - 1{
+        msg!("This must be the last instruction in the transaction");
+        return Err(RouletteError::SuspiciousTransaction.into());
+    }
     assert_signer(gambler_info)?;
     let mut rng = RNG::from_account_info(rng_info)?;
     let honeypot = Honeypot::from_account_info(honeypot_info)?;
@@ -367,6 +386,9 @@ fn roulette(
     if !rng.initialized {
         rng.initialized = true;
     }
+    if rng.slot == slot {
+        return Err(RouletteError::InvalidSlot.into());
+    }
     rng.value = random_sample;
     rng.slot = slot;
     msg!("Sample {}", random_sample);
@@ -378,19 +400,19 @@ fn roulette(
         msg!("Bet Enum: {}, size: {}", bet.bet as u8, bet.amount);
         reward = reward
             .checked_add(bet.get_payout(outcome))
-            .ok_or(ProgramError::InvalidInstructionData)?;
+            .ok_or(RouletteError::NumericalOverflow)?;
         msg!("Reward {}", reward);
         total_amount = total_amount
             .checked_add(bet.amount)
-            .ok_or(ProgramError::InvalidInstructionData)?;
+            .ok_or(RouletteError::NumericalOverflow)?;
     }
     if total_amount
         .checked_mul(honeypot.tick_size)
-        .ok_or(ProgramError::InsufficientFunds)?
+        .ok_or(RouletteError::NumericalOverflow)?
         > honeypot.max_bet_size
     {
         msg!("Bet is too large");
-        return Err(ProgramError::InvalidInstructionData.into());
+        return Err(RouletteError::AmountTooLarge.into());
     }
     if vault.amount <= honeypot.minimum_bank_size {
         msg!("Honeypot funds have been drained. The house needs to reload.");
@@ -398,7 +420,7 @@ fn roulette(
     }
     let total_bet_size = total_amount
         .checked_mul(honeypot.tick_size)
-        .ok_or(ProgramError::InsufficientFunds)?;
+        .ok_or(RouletteError::NumericalOverflow)?;
     msg!("User deposited {} tokens", total_bet_size);
     invoke(
         &transfer(
@@ -418,7 +440,7 @@ fn roulette(
     )?;
     let total_reward = reward
         .checked_mul(honeypot.tick_size)
-        .ok_or(ProgramError::InsufficientFunds)?;
+        .ok_or(RouletteError::NumericalOverflow)?;
     if total_reward > 0 {
         msg!("User won {} tokens", total_reward);
         invoke_signed(
